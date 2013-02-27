@@ -3,7 +3,11 @@
 #+Date: [2013-02-27 Wed]
 
 =stack-mode= hopes to be a fully-featured Stack Exchange mode for
-Emacs 24+ using version 2.1 of the Stack Exchange API.
+Emacs 24+ using version 2.1 (and subsequent versions as available) of
+the Stack Exchange API.
 
-More details coming soon, just trying to get everything settled as far
-as version control.
+For a full list of planned features and a sketch of high-level
+implementation (no elisp, yet), see [[file://stack-mode.org]].
+
+This README will eventually hold an extremely high-level feature list
+and details on installation and configuration.
