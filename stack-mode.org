@@ -46,6 +46,7 @@ as a whole.
 - RET :: enter site into [[*Question%20Browse%20Mode:%20%3Dstack-question-browse-mode%3D][Question Browse Mode]]
 - s :: profile summary (stack-profile-mode ?)
 - C-u s :: profile summary for user
+- i :: goto [[*Inbox%20Mode:%20%3Dstack-inbox-mode%3D][Inbox Mode]]
 
 ** Question Browse Mode: =stack-question-browse-mode=
 - Note taken on [2013-02-27 Wed 15:28] \\
@@ -96,6 +97,7 @@ Display statistical information on top:
  - RET :: enter question ([[*Question%20Detail%20Mode:%20%3Dstack-question-detail-mode%3D][Question Detail Mode]])
  - A :: ask question ([[*Ask%20Mode:%20%3Dstack-ask-mode%3D][Ask Mode]])
  - q :: go back to [[*Network%20Mode:%20%3Dstack-network-mode%3D][Network Mode]]
+ - m :: switch to meta
 
 ** Question Detail Mode: =stack-question-detail-mode=
 
@@ -109,6 +111,8 @@ The question and each answer are top-level nodes.
 
 - = :: upvote question/answer
 - - :: downvote
+- s :: save offline as an =org= node.  (The archive file is kept in
+       .emacs.d)
 
 ** Comment Mode: =stack-comment-mode=
 
@@ -128,3 +132,5 @@ up below in comment-mode.  Should support mentions.
 A minor mode atop =markdown-mode=, adding support for tagging.
 
 Ask a question.
+** Inbox Mode: =stack-inbox-mode=
+yeah.  View notifications and stuff.
