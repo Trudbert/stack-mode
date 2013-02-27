@@ -2,6 +2,13 @@
 #+Author: Sean Allred
 #+Date: [2013-02-27 Wed]
 
+This document is largely incomplete.  All information is more than
+subject to change.
+
+* Resources
+- [[https://api.stackexchange.com/docs][SX.API v2.1]]
+- [[http://stackapps.com/apps/oauth/register][StackApps Registration Page]]
+- [[http://www.emacswiki.org/emacs/ModeTutorial][Creating Major Modes for Emacs]]
 * Icon
 The [[file:stackexchange-icon.svg][Stack Exchange icon]] superimposed upon the Emacs GNU, as if the GNU
 were talking.
@@ -15,3 +22,109 @@ The Stack Exchange API uses JSON as its main method of interaction.
 Available Features:
 
 - Write methods 
+
+* =stack-mode= Planned Features
+For features that require unsupported write access, the message shall
+be displayed: "Version <api-version> of the Stack Exchange API does
+not support this action."  The functions shall exist (along with their
+keymaps), but the functionality will be replaced by the display of
+such a message.
+
+When I say minor mode, I may mean a major mode mostly based off of
+another mode, as these functions don't make any sense in any other
+context.
+
+** Network Mode: =stack-network-mode=
+
+This mode is API-read-only.
+
+There needs to be a major mode for browsing the StackExchange network
+as a whole.
+*** Default Keymap
+- n :: next site
+- p :: previous site
+- RET :: enter site into [[*Question%20Browse%20Mode:%20%3Dstack-question-browse-mode%3D][Question Browse Mode]]
+- s :: profile summary (stack-profile-mode ?)
+- C-u s :: profile summary for user
+
+** Question Browse Mode: =stack-question-browse-mode=
+- Note taken on [2013-02-27 Wed 15:28] \\
+  Upvoting and downvoting could easily be supported in this mode, but
+  shouldn't be.  How can you possibly upvote or downvote something just
+  be reading the title?
+
+This mode is buffer-read-only.
+
+Font Lock
+ - green :: answered question
+ - bold red :: open bounty
+ - bold :: unanswered
+
+Sorting and Filtering
+- should be able to sort
+
+Green font-lock for answered questions, red for unanswered.
+
+Question starring, dispatcher-y feel.
+
+Display statistical information on top:
+ - if point is on a question, display the user who asked it, their
+   reputation, the last revisor, their reputation, tags, views,
+   answers, accept status, and votes.  (The following example is from
+   [[http://tex.stackexchange.com/questions/83970/auctex-preview-latex-and-ghostscript-emacs][one of my own questions]] retrieved [2013-02-27 Wed 15:36].)
+   #+begin_example
+   Full title: AUCTeX, preview-latex, and Ghostscript (Emacs)        |
+        Asker: vermiculus (572)                            Bounty:  50
+      Answers:  1 (Accepted)            Active: [2013-02-27 Wed 15:44]
+         Tags: emacs auctex preview ghostscript
+   #+end_example
+ - if point is not on a question, display site trends in general
+   #+begin_example
+         Site: TeX, LaTeX, and Friends
+        Users: 400
+   Unanswered: 15 (0.003)
+   #+end_example
+   - users is 200 rep or more
+   - the number beside unanswered is a float in [0, 1]
+     - 0 :: all questions are answered
+     - 1 :: no questions are answered
+
+*** Default Keymap
+
+ - n :: next question (move point down)
+ - p :: previous question
+ - RET :: enter question ([[*Question%20Detail%20Mode:%20%3Dstack-question-detail-mode%3D][Question Detail Mode]])
+ - A :: ask question ([[*Ask%20Mode:%20%3Dstack-ask-mode%3D][Ask Mode]])
+ - q :: go back to [[*Network%20Mode:%20%3Dstack-network-mode%3D][Network Mode]]
+
+** Question Detail Mode: =stack-question-detail-mode=
+
+Outline-mode-like question voting, comment voting/flagging
+
+This mode is buffer-read-only.
+
+The question and each answer are top-level nodes.
+
+*** Default Keymap
+
+- = :: upvote question/answer
+- - :: downvote
+
+** Comment Mode: =stack-comment-mode=
+
+Minor mode for use atop markdown-mode.
+
+Valid for Questions and Answers; just a small window that would open
+up below in comment-mode.  Should support mentions.
+
+*** Default Keymap
+
+- C-c C-c :: Commit comment.
+- C-c C-k :: Cancel comment.
+- TAB :: Expand username, if possible (must be after =@=)
+
+** Ask Mode: =stack-ask-mode=
+
+A minor mode atop =markdown-mode=, adding support for tagging.
+
+Ask a question.
