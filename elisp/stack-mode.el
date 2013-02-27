@@ -1,6 +1,12 @@
+;; stack-mode.el starts here
+
 ;;; Stack-Mode for Emacs
 ;;; Author: Sean Allred
 ;;; Version: 2013.2.27
+
+(require 'json)    ; Included in Emacs 24+
+(require 'request) ; Available via MELPA
+
 
 (defgroup stack-exchange nil
   "Stack Exchange Mode"
@@ -15,14 +21,15 @@
     map)
   "Keymap for Stack Exchange major mode")
 
-;;;###autoload
-
 ; Note that this will only open the buffer in our mode.
 ; There is likely some event we need to handle to take
 ;  this information in the file and then present the
 ;  information the user actually wants.
+;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.sx\\'" . stack-mode))
 
-
+(require 'stack-network-mode)
 
 (provide 'stack-mode)
+
+;; stack-mode.el ends here

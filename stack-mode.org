@@ -23,7 +23,7 @@ Available Features:
 
 - Write methods 
 
-* =stack-mode= Planned Features
+* Planned Features
 For features that require unsupported write access, the message shall
 be displayed: "Version <api-version> of the Stack Exchange API does
 not support this action."  The functions shall exist (along with their
@@ -40,12 +40,14 @@ This mode is API-read-only.
 
 There needs to be a major mode for browsing the StackExchange network
 as a whole.
+
 *** Default Keymap
+
 - n :: next site
 - p :: previous site
 - RET :: enter site into [[*Question%20Browse%20Mode:%20%3Dstack-question-browse-mode%3D][Question Browse Mode]]
-- s :: profile summary (stack-profile-mode ?)
-- C-u s :: profile summary for user
+- u :: profile summary (stack-profile-mode ?)
+- C-u u :: profile summary for user
 - i :: goto [[*Inbox%20Mode:%20%3Dstack-inbox-mode%3D][Inbox Mode]]
 
 ** Question Browse Mode: =stack-question-browse-mode=
@@ -95,6 +97,7 @@ Display statistical information on top:
  - n :: next question (move point down)
  - p :: previous question
  - RET :: enter question ([[*Question%20Detail%20Mode:%20%3Dstack-question-detail-mode%3D][Question Detail Mode]])
+ - s :: star a question
  - A :: ask question ([[*Ask%20Mode:%20%3Dstack-ask-mode%3D][Ask Mode]])
  - q :: go back to [[*Network%20Mode:%20%3Dstack-network-mode%3D][Network Mode]]
  - m :: switch to meta
@@ -111,8 +114,9 @@ The question and each answer are top-level nodes.
 
 - = :: upvote question/answer
 - - :: downvote
-- s :: save offline as an =org= node.  (The archive file is kept in
-       .emacs.d)
+- s :: star
+- C-u s :: save offline as an =org= node.  (The archive file is kept
+           in .emacs.d)
 
 ** Comment Mode: =stack-comment-mode=
 
@@ -134,3 +138,7 @@ A minor mode atop =markdown-mode=, adding support for tagging.
 Ask a question.
 ** Inbox Mode: =stack-inbox-mode=
 yeah.  View notifications and stuff.
+** Implementation
+All functions will have `stack-network` / `stack-comment` / etc. as a
+prefix.  Functions which must alter the mode the user ends up in will
+be further prefixed with `do`.

@@ -1,0 +1,26 @@
+(require 'request)
+(require 'json)
+
+(request
+ "http://search.twitter.com/search.json"
+ :params '((q . "orgmode"))
+ :parser 'json-read
+ :success (function*
+           (lambda (&key data &allow-other-keys)
+             (let* ((tweet (elt (assoc-default 'results data) 0))
+                    (text (assoc-default 'text tweet))
+                    (user (assoc-default 'from_user_name tweet)))
+               (message "%s says %s" user text)))))
+
+(request
+ "https://api.stackexchange.com/2.1/questions"
+ :params '((order . "desc")
+           (sort . "activity")
+           (site . "tex"))
+ :parser 'json-read
+ :success (function*
+           (lambda (&key data &allow-other-keys)
+             (let* ((item (elt (assoc-default 'items data) 0))
+                    (title (assoc-default 'title item))
+                    (tags (assoc-default 'tags item)))
+               (message "%s %S" title (print tags))))))
