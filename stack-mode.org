@@ -1,0 +1,17 @@
+#+Title: Stack-Exchange Mode for Emacs
+#+Author: Sean Allred
+#+Date: [2013-02-27 Wed]
+
+* Icon
+The [[file:stackexchange-icon.svg][Stack Exchange icon]] superimposed upon the Emacs GNU, as if the GNU
+were talking.
+
+* API Version 2.1
+Version 2.1 of the Stack Exchange API allows for read-only access (and
+write-access for comments!) to the Stack Exchange network.
+
+The Stack Exchange API uses JSON as its main method of interaction.
+
+Available Features:
+
+- Write methods 
