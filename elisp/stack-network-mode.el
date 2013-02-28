@@ -1,3 +1,4 @@
+
 ;; stack-network-mode.el starts here
 
 ;(require 'stack-mode)
@@ -7,14 +8,11 @@
 (defun stack-network-debug (format &rest args)
   (if stack-network-display-debug-messages (message format args)))
 
-
 (define-derived-mode stack-network-mode
   special-mode
   "SX-Network"
   "Major mode for navigating and organizing sites on the Stack
 Exchange Network.")
-  ;(use-local-map stack-network-mode-map))
-
 
 (defvar stack-network-mode-hook nil)
 
@@ -42,10 +40,16 @@ Exchange Network.")
   (next-line))
 
 (defun stack-network-previous-site ()
-  "Move to the previous site in the list"
+  "Move to the previous site in the list."
   (interactive)
   (stack-network-debug "in prev site")
   (previous-line))
+
+(defun stack-network-do-enter-site ()
+  "Enter the site at point in another buffer."
+  (interactive)
+  (message "I have no idea what I'm doing")
+  (stack-exchange-question-browse-mode site-under-point))
 
 (provide 'stack-network-mode)
 

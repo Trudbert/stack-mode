@@ -1,12 +1,8 @@
-;; stack-mode.el starts here
 
-;;; Stack-Mode for Emacs
-;;; Author: Sean Allred
-;;; Version: 2013.2.27
+;; stack-mode.el starts here
 
 (require 'json)    ; Included in Emacs 24+
 (require 'request) ; Available via MELPA
-
 
 (defgroup stack-exchange nil
   "Stack Exchange Mode"

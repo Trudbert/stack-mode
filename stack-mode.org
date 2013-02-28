@@ -1,6 +1,8 @@
 #+Title: Stack-Exchange Mode for Emacs
 #+Author: Sean Allred
-#+Date: [2013-02-27 Wed]
+#+Date: [2013-02-28 Thu]
+
+#+startup: indent
 
 This document is largely incomplete.  All information is more than
 subject to change.
@@ -23,7 +25,42 @@ Available Features:
 
 - Write methods 
 
-* Planned Features
+* Implementation
+#+begin_src emacs-lisp :tangle elisp/stack-mode.el
+  ;; stack-mode.el starts here
+  
+  (require 'json)    ; Included in Emacs 24+
+  (require 'request) ; Available via MELPA
+  
+  (defgroup stack-exchange nil
+    "Stack Exchange Mode"
+    :group 'environment)
+  
+  (defvar stack-mode-hook nil)
+  
+  (defvar stack-mode-map
+    (let ((map (make-keymap)))
+      ; TODO define as many keymaps as necessary
+      (define-key map "\C-j" 'newline-and-indent)
+      map)
+    "Keymap for Stack Exchange major mode")
+  
+  ; Note that this will only open the buffer in our mode.
+  ; There is likely some event we need to handle to take
+  ;  this information in the file and then present the
+  ;  information the user actually wants.
+  ;;;###autoload
+  (add-to-list 'auto-mode-alist '("\\.sx\\'" . stack-mode))
+  
+  (require 'stack-network-mode)
+  
+  (provide 'stack-mode)
+  
+  ;; stack-mode.el ends here
+#+end_src
+(I just pasted so I could keep everything as one [[http://www.literateprogramming.com/][literate-programming]]
+[[http://orgmode.org][=org-mode=]] file.  This snippet will be explained later.)
+
 For features that require unsupported write access, the message shall
 be displayed: "Version <api-version> of the Stack Exchange API does
 not support this action."  The functions shall exist (along with their
@@ -34,14 +71,71 @@ When I say minor mode, I may mean a major mode mostly based off of
 another mode, as these functions don't make any sense in any other
 context.
 
+At all times, the percentage of API requests left can be displayed in
+the modeline according to the customizable variable (nil|t)
+=stack-display-API-requests-in-modeline= and shall turn red (if
+activated) when use exceeds =stack-display-API-color-threshold= (a
+float in [0, 1], where 0 never changes the color).
+
 ** Network Mode: =stack-network-mode=
+Network mode is a major mode (derived from =special-mode=) that
+defines functions and binds keys useful for browing and organizing
+sites in the Stack Exchange network.  Since it is an integrated part
+of =stack-mode= and dispatches to several sibling modes, it is
+imperative that =stack-mode= (and all of its child modes) be available
+upon entering =stack-network-mode=.  (For the purposes of testing,
+=(require 'stack-mode)= has been commented out to avoid =load-path=
+issues.  (I'm really lazy.)  In addition, a debugging function has
+been added to facilitate messaging that would be useful to track down
+bugs.)
+#+begin_src emacs-lisp :tangle elisp/stack-network-mode.el
+  ;; stack-network-mode.el starts here
+  
+  ;(require 'stack-mode)
+  
+  (defvar stack-network-display-debug-messages t)
+  
+  (defun stack-network-debug (format &rest args)
+    (if stack-network-display-debug-messages (message format args)))
+  
+  (define-derived-mode stack-network-mode
+    special-mode
+    "SX-Network"
+    "Major mode for navigating and organizing sites on the Stack
+  Exchange Network.")
+#+end_src
 
-This mode is API-read-only.
+Here is the planned interface:
+#+begin_src emacs-lisp :tangle elisp/stack-network-mode-navtest-buffer.test
+  -*- stack-network -*-
+  
+     4 unread inbox items
+     1 unread notification
+  
+  Favorites.............................................................
+    TeX, LaTeX, and Friends                                       tex.sx
+    StackOverflow                                          stackoverflow
+    StackApps                                                  stackapps
+    Mathematics                                                  math.sx
+  
+  Other Sites...........................................................
+    <all other sites>
+#+end_src
+(While not functional, this file is intended to produce a buffer
+suitable for navigation testing.  It should be de-tangled before
+release.)
 
-There needs to be a major mode for browsing the StackExchange network
-as a whole.
+A mode hook is provided for customizability.  I am not sure that this
+hook is automatically run or not per =special-mode=. (TODO)
+#+begin_src emacs-lisp :tangle elisp/stack-network-mode.el
+  (defvar stack-network-mode-hook nil)
+#+end_src
 
-*** Default Keymap
+*** TODO Default Keymap
+- Note taken on [2013-02-28 Thu 14:13] \\
+  Issues with this are in the process of being [[http://stackoverflow.com/questions/15124824/][resolved]].  Currently,
+  keybindings do not act as expected, e.g. pressing =n= will not call
+  =stack-network-next-site=.
 
 - n :: next site
 - p :: previous site
@@ -50,6 +144,60 @@ as a whole.
 - C-u u :: profile summary for user
 - i :: goto [[*Inbox%20Mode:%20%3Dstack-inbox-mode%3D][Inbox Mode]]
 
+#+begin_src emacs-lisp :tangle elisp/stack-network-mode.el
+  (defvar stack-network-mode-map
+    (let ((map (make-keymap)))
+      (define-key map "n"     'stack-network-next-site)
+      (define-key map "p"     'stack-network-previous-site)
+      (define-key map ","     'stack-network-move-site-up)
+      (define-key map "."     'stack-network-move-site-down)
+      (define-key map "j"     'stack-network-jump-to-bookmarks)
+      (define-key map "\C-m"  'stack-network-do-enter-site) ; ret
+      (define-key map "o"     'stack-network-do-enter-site)
+      (define-key map "u"     'stack-network-do-profile-summary)
+      (define-key map "\C-uu" 'stack-network-do-profile-summary-for-user)
+      (define-key map "i"     'stack-network-do-inbox)
+      (define-key map "b"     'stack-network-toggle-bookmark)
+      (define-key map "\C-i"  'stack-network-display-details) ; tab
+      map)
+    "Keymap for Stack Exchange: Network Browser major mode")
+#+end_src
+
+*** Navigation
+The primary methods of navigation =--next-site=, =--previous-site=,
+and =--enter-site=.  The first two of these three do only what makes
+sense: they move point up and down the list of available sites.
+#+begin_src emacs-lisp :tangle elisp/stack-network-mode.el
+  (defun stack-network-next-site ()
+    "Move to the next site in the list."
+    (interactive)
+    (stack-network-debug "in next site")
+    (next-line))
+  
+  (defun stack-network-previous-site ()
+    "Move to the previous site in the list."
+    (interactive)
+    (stack-network-debug "in prev site")
+    (previous-line))
+  
+  (defun stack-network-do-enter-site ()
+    "Enter the site at point in another buffer."
+    (interactive)
+    (message "I have no idea what I'm doing")
+    (stack-exchange-question-browse-mode site-under-point))
+#+end_src
+
+*** Conclusion
+Network mode is the highest-level mode available within =stack-mode=.
+Its primary purpose is to be a dispatcher for other commands.  Since
+many users reside on exactly one StackExchange site, =stack-mode=
+should be configurable to support this.
+
+#+begin_src emacs-lisp :tangle elisp/stack-network-mode.el
+  (provide 'stack-network-mode)
+  
+  ;; stack-network-mode.el ends here
+#+end_src
 ** Question Browse Mode: =stack-question-browse-mode=
 - Note taken on [2013-02-27 Wed 15:28] \\
   Upvoting and downvoting could easily be supported in this mode, but
@@ -138,7 +286,7 @@ A minor mode atop =markdown-mode=, adding support for tagging.
 Ask a question.
 ** Inbox Mode: =stack-inbox-mode=
 yeah.  View notifications and stuff.
-** Implementation
+** Conventions
 All functions will have `stack-network` / `stack-comment` / etc. as a
 prefix.  Functions which must alter the mode the user ends up in will
 be further prefixed with `do`.
