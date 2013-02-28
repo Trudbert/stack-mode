@@ -1,4 +1,4 @@
-#+Title: Stack-Exchange Mode for Emacs
+#+Title: Stack Exchange Mode for Emacs
 #+Author: Sean Allred
 #+Date: [2013-02-28 Thu]
 
@@ -12,10 +12,11 @@ subject to change.
 - [[http://stackapps.com/apps/oauth/register][StackApps Registration Page]]
 - [[http://www.emacswiki.org/emacs/ModeTutorial][Creating Major Modes for Emacs]]
 * Icon
-The [[file:stackexchange-icon.svg][Stack Exchange icon]] superimposed upon the Emacs GNU, as if the GNU
-were talking.
+Stack Exchange Mode for Emacs has no explicit use for an icon,
+although standard SVG files have been gathered in =resources/= if
+anyone would fancy a crack at it.
 
-* API Version 2.1
+* Stack Exchange API Version 2.1
 Version 2.1 of the Stack Exchange API allows for read-only access (and
 write-access for comments!) to the Stack Exchange network.
 
@@ -25,7 +26,19 @@ Available Features:
 
 - Write methods 
 
+(yeah, this needs to be expanded.)
+** COMMENT
+This is meant more as a reference for when I am (or another user is)
+not online.  This is not official documentation, although I hope it is
+accurate up to [2013-02-28 Thu 17:00].
 * Implementation
+** Conventions
+- All functions will have `stack-network-` / `stack-comment-` /
+  etc. (as appropriate) as a prefix.
+- Functions which must alter the mode the user ends up in will be
+  further prefixed with `do-`.
+- Functions with no arguments will effect so with =()=, not =nil=.
+** Entry: =stack-mode=
 #+begin_src emacs-lisp :tangle elisp/stack-mode.el
   ;; stack-mode.el starts here
   
@@ -249,7 +262,6 @@ Display statistical information on top:
  - A :: ask question ([[*Ask%20Mode:%20%3Dstack-ask-mode%3D][Ask Mode]])
  - q :: go back to [[*Network%20Mode:%20%3Dstack-network-mode%3D][Network Mode]]
  - m :: switch to meta
-
 ** Question Detail Mode: =stack-question-detail-mode=
 
 Outline-mode-like question voting, comment voting/flagging
@@ -265,7 +277,6 @@ The question and each answer are top-level nodes.
 - s :: star
 - C-u s :: save offline as an =org= node.  (The archive file is kept
            in .emacs.d)
-
 ** Comment Mode: =stack-comment-mode=
 
 Minor mode for use atop markdown-mode.
@@ -278,7 +289,6 @@ up below in comment-mode.  Should support mentions.
 - C-c C-c :: Commit comment.
 - C-c C-k :: Cancel comment.
 - TAB :: Expand username, if possible (must be after =@=)
-
 ** Ask Mode: =stack-ask-mode=
 
 A minor mode atop =markdown-mode=, adding support for tagging.
@@ -286,7 +296,3 @@ A minor mode atop =markdown-mode=, adding support for tagging.
 Ask a question.
 ** Inbox Mode: =stack-inbox-mode=
 yeah.  View notifications and stuff.
-** Conventions
-All functions will have `stack-network` / `stack-comment` / etc. as a
-prefix.  Functions which must alter the mode the user ends up in will
-be further prefixed with `do`.
