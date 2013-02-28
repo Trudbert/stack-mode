@@ -2,6 +2,20 @@
 
 ;(require 'stack-mode)
 
+(defvar stack-network-display-debug-messages t)
+
+(defun stack-network-debug (format &rest args)
+  (if stack-network-display-debug-messages (message format args)))
+
+
+(define-derived-mode stack-network-mode
+  special-mode
+  "SX-Network"
+  "Major mode for navigating and organizing sites on the Stack
+Exchange Network.")
+  ;(use-local-map stack-network-mode-map))
+
+
 (defvar stack-network-mode-hook nil)
 
 (defvar stack-network-mode-map
@@ -17,31 +31,21 @@
     (define-key map "\C-uu" 'stack-network-do-profile-summary-for-user)
     (define-key map "i"     'stack-network-do-inbox)
     (define-key map "b"     'stack-network-toggle-bookmark)
-    (define-key map "?"     'stack-network-list-functions) ; [1]
     (define-key map "\C-i"  'stack-network-display-details) ; tab
     map)
   "Keymap for Stack Exchange: Network Browser major mode")
 
-; [1] Possibly change to -list-bindings, though I don't know how to
-; get such info
-
-(defun stack-network-next-site nil
+(defun stack-network-next-site ()
   "Move to the next site in the list."
-  (next-line)
-  (move-beginning-of-line))
-
-
-
-(defun stack-network-mode nil
-  "Major mode for navigating and organizing sites on the Stack
-Exchange Network."
   (interactive)
-  (kill-all-local-variables)
-;  (set-syntax-table wpdl-mode-syntax-table)
-  (use-local-map stack-network-mode-map)
-  (setq major-mode 'stack-network-mode)
-  (setq mode-name "SX-Network")
-  (run-hooks 'stack-network-mode-hook))
+  (stack-network-debug "in next site")
+  (next-line))
+
+(defun stack-network-previous-site ()
+  "Move to the previous site in the list"
+  (interactive)
+  (stack-network-debug "in prev site")
+  (previous-line))
 
 (provide 'stack-network-mode)
 
