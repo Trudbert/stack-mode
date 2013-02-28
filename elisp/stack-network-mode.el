@@ -8,12 +8,6 @@
 (defun stack-network-debug (format &rest args)
   (if stack-network-display-debug-messages (message format args)))
 
-(define-derived-mode stack-network-mode
-  special-mode
-  "SX-Network"
-  "Major mode for navigating and organizing sites on the Stack
-Exchange Network.")
-
 (defvar stack-network-mode-hook nil)
 
 (defvar stack-network-mode-map
@@ -49,7 +43,14 @@ Exchange Network.")
   "Enter the site at point in another buffer."
   (interactive)
   (message "I have no idea what I'm doing")
-  (stack-exchange-question-browse-mode site-under-point))
+  (stack-exchange-question-browse-mode
+   (stack-network-get-site-under-point)))
+
+(define-derived-mode stack-network-mode
+  special-mode
+  "SX-Network"
+  "Major mode for navigating and organizing sites on the Stack
+Exchange Network.")
 
 (provide 'stack-network-mode)
 

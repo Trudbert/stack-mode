@@ -29,3 +29,7 @@
 (provide 'stack-mode)
 
 ;; stack-mode.el ends here
+
+(defvar stack-exchange-api-key-to-site-alist
+  ; define
+  )

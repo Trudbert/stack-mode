@@ -16,6 +16,9 @@ Stack Exchange Mode for Emacs has no explicit use for an icon,
 although standard SVG files have been gathered in =resources/= if
 anyone would fancy a crack at it.
 
+- [[file:resources/emacs.svg][Emacs icon]]
+- [[file:resources/stackexchange.svg][Stack Exchange icon]]
+
 * Stack Exchange API Version 2.1
 Version 2.1 of the Stack Exchange API allows for read-only access (and
 write-access for comments!) to the Stack Exchange network.
@@ -32,12 +35,40 @@ This is meant more as a reference for when I am (or another user is)
 not online.  This is not official documentation, although I hope it is
 accurate up to [2013-02-28 Thu 17:00].
 * Implementation
-** Conventions
+** Conventions and Terminology
+*** Code Conventions
 - All functions will have `stack-network-` / `stack-comment-` /
   etc. (as appropriate) as a prefix.
 - Functions which must alter the mode the user ends up in will be
-  further prefixed with `do-`.
-- Functions with no arguments will effect so with =()=, not =nil=.
+  further prefixed with `do-` as to flag its impact.
+- Functions with no arguments will effect its lack thereof with =()=,
+  not =nil=.  (While =()= is /precisely/ the same as =nil= in Lisp
+  (and more specifically, Emacs Lisp), it is convention do this.
+  Failure to follow this convention may needlessly confuse potential
+  contributors.
+
+*** Document conventions
+When referring to a function using =a teletype font= and the first
+character is a dash, apply the appropriate prefix,
+e.g. =-do-enter-site= --> =stack-network-do-enter-site=.  It becomes
+tedious to read (not to mention to write!) these functions and
+variables involved in the same package/section so repetitively.
+
+*** Terminology of Emacs Lisp
+It is expected that the reader has a basic knowledge of Lisp in
+general.  However, there are more than a few terms in this document
+which are particularly important to Emacs Lisp programming, and are a
+bit of research to find adequate definitions for.
+
+While there are myriad functions and symbols specific to Emacs Lisp
+programming, these functions are far better documented in Emacs' own
+'Info' system.  Place point on a symbol you'd like to learn about and
+use =C-h f= or =C-c v= (for functions or variables, respectively) to
+find out more.  (Hint: it even works in this very document!)
+
+- a-list :: a list of conses, usually pairing a symbol with a
+            description or action
+
 ** Entry: =stack-mode=
 #+begin_src emacs-lisp :tangle elisp/stack-mode.el
   ;; stack-mode.el starts here
@@ -110,12 +141,6 @@ bugs.)
   
   (defun stack-network-debug (format &rest args)
     (if stack-network-display-debug-messages (message format args)))
-  
-  (define-derived-mode stack-network-mode
-    special-mode
-    "SX-Network"
-    "Major mode for navigating and organizing sites on the Stack
-  Exchange Network.")
 #+end_src
 
 Here is the planned interface:
@@ -144,7 +169,7 @@ hook is automatically run or not per =special-mode=. (TODO)
   (defvar stack-network-mode-hook nil)
 #+end_src
 
-*** TODO Default Keymap
+*** Default Keymap
 - Note taken on [2013-02-28 Thu 14:13] \\
   Issues with this are in the process of being [[http://stackoverflow.com/questions/15124824/][resolved]].  Currently,
   keybindings do not act as expected, e.g. pressing =n= will not call
@@ -177,9 +202,9 @@ hook is automatically run or not per =special-mode=. (TODO)
 #+end_src
 
 *** Navigation
-The primary methods of navigation =--next-site=, =--previous-site=,
-and =--enter-site=.  The first two of these three do only what makes
-sense: they move point up and down the list of available sites.
+The primary methods of navigation =-next-site=, =-previous-site=, and
+=-enter-site=.  The first two of these three do only what makes sense:
+they move point up and down the list of available sites.
 #+begin_src emacs-lisp :tangle elisp/stack-network-mode.el
   (defun stack-network-next-site ()
     "Move to the next site in the list."
@@ -197,7 +222,23 @@ sense: they move point up and down the list of available sites.
     "Enter the site at point in another buffer."
     (interactive)
     (message "I have no idea what I'm doing")
-    (stack-exchange-question-browse-mode site-under-point))
+    (stack-exchange-question-browse-mode
+     (stack-network-get-site-under-point)))
+#+end_src
+
+If you look at the defintion of =-do-enter-site=, you will notice that
+the heretofore undefined =-get-site-under-point= is used.  As you may
+have guessed, the purpose of this function is to obtain the 'string
+representation' of the Stack Exchange site upon which point currently
+rests.  There is as of yet no method of retrieving this dynamically,
+so a definition-style a-list is made at the very top (=stack-mode.el=)
+to facilitate easy use.
+
+#+begin_src emacs-lisp :tangle elisp/stack-mode.el
+  (defvar stack-exchange-api-key-to-site-alist
+    ; define
+    )
+  
 #+end_src
 
 *** Conclusion
@@ -207,6 +248,12 @@ many users reside on exactly one StackExchange site, =stack-mode=
 should be configurable to support this.
 
 #+begin_src emacs-lisp :tangle elisp/stack-network-mode.el
+  (define-derived-mode stack-network-mode
+    special-mode
+    "SX-Network"
+    "Major mode for navigating and organizing sites on the Stack
+  Exchange Network.")
+
   (provide 'stack-network-mode)
   
   ;; stack-network-mode.el ends here
