@@ -3,7 +3,8 @@
 #+Date: [2013-02-28 Thu]
 
 This document is largely incomplete.  All information is more than
-subject to change.
+subject to change.  As Github's =org-mode= parsing is currently
+broken, it is advised that you view this document locally.
 
 * Installing
 - Note taken on [2013-03-01 Fri 01:04] \\
