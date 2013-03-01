@@ -2,10 +2,51 @@
 #+Author: Sean Allred
 #+Date: [2013-02-28 Thu]
 
-#+startup: indent
-
 This document is largely incomplete.  All information is more than
 subject to change.
+
+* Installing
+- Note taken on [2013-03-01 Fri 01:04] \\
+  More work to be done here.  Figure out exactly what needs to be done
+  and update the high-level to do it.
+Installation is automatic if done through a package manager such as
+MELPA; in this case, it is unbefitting to require extra user
+involvement.  But, since this is a /literate programming document/,
+I'd like to explain how the process could be done manually.
+
+If you are viewing this lovely file in Emacs but are still similarly
+'eager' about using =stack-mode=, go ahead and =C-c C-c= [fn::which,
+on a default installation, runs =org-babel-execute-src-block=] the
+following line.  It will take care of installation for you.  You will
+need to confirm execution twice if you have not configured
+=org-babel-confirm-evaluate= to allow execuation of Emacs Lisp
+snippets without confirmation.
+
+#+call: $install()
+
+What we're basically going to do is this:
+#+name: $install
+#+begin_src emacs-lisp :noweb yes
+  <<$install-tangle-buffer>>
+  <<$install-move-to-load-path>>
+#+end_src
+
+#+name: $install-tangle-buffer
+#+begin_src emacs-lisp
+  (message "Tangling stack-mode files...")
+  (org-babel-tangle)
+  (message "Tangling stack-mode files...done")
+#+end_src
+
+#+name: $install-move-to-load-path
+#+begin_src emacs-lisp
+  (message "Moving source files to load-path...")
+#+end_src
+
+#+name: $install-move-to-load-path
+#+begin_src emacs-lisp
+  (message "More moving...")
+#+end_src
 
 * Resources
 - [[https://api.stackexchange.com/docs][SX.API v2.1]]
@@ -123,7 +164,7 @@ float in [0, 1], where 0 never changes the color).
 
 ** Network Mode: =stack-network-mode=
 Network mode is a major mode (derived from =special-mode=) that
-defines functions and binds keys useful for browing and organizing
+defines functions and binds keys useful for browsing and organizing
 sites in the Stack Exchange network.  Since it is an integrated part
 of =stack-mode= and dispatches to several sibling modes, it is
 imperative that =stack-mode= (and all of its child modes) be available
@@ -238,7 +279,6 @@ to facilitate easy use.
   (defvar stack-exchange-api-key-to-site-alist
     ; define
     )
-  
 #+end_src
 
 *** Conclusion
@@ -343,3 +383,4 @@ A minor mode atop =markdown-mode=, adding support for tagging.
 Ask a question.
 ** Inbox Mode: =stack-inbox-mode=
 yeah.  View notifications and stuff.
+
