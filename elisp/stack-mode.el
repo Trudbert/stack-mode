@@ -1,28 +1,22 @@
 
 ;; stack-mode.el starts here
 
-(require 'json)    ; Included in Emacs 24+
-(require 'request) ; Available via MELPA
+(require 'json)
 
-(defgroup stack-exchange nil
-  "Stack Exchange Mode"
+(require 'request)
+
+(defgroup stack-exchange
+  nil
+  "Stack Exchange mode."
   :group 'environment)
 
 (defvar stack-mode-hook nil)
 
 (defvar stack-mode-map
-  (let ((map (make-keymap)))
-    ; TODO define as many keymaps as necessary
-    (define-key map "\C-j" 'newline-and-indent)
+  (let ((map (make-sparse-keymap)))
     map)
-  "Keymap for Stack Exchange major mode")
-
-; Note that this will only open the buffer in our mode.
-; There is likely some event we need to handle to take
-;  this information in the file and then present the
-;  information the user actually wants.
-;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.sx\\'" . stack-mode))
+  "Keymap for Stack Exchange major mode.  This keymap is not
+  used.")
 
 (require 'stack-network-mode)
 

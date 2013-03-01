@@ -2,6 +2,9 @@
 #+Author: Sean Allred
 #+Date: [2013-02-28 Thu]
 
+# This line crashes Emacs.  Remove it for successful export.
+#+INFOJS_OPT view:content
+
 This document is largely incomplete.  All information is more than
 subject to change.  As Github's =org-mode= parsing is currently
 broken, it is advised that you view this document locally.
@@ -36,22 +39,29 @@ snippets without confirmation.
 
 What we're basically going to do is this:
 #+name: $install
-#+begin_src emacs-lisp :noweb yes
+#+begin_src emacs-lisp :noweb strip-export :results output
+  (defun $d (m) (message (princ m)) (terpri))
   <<$install-tangle-buffer>>
   <<$install-move-to-load-path>>
 #+end_src
 
+oh shit
+
 #+name: $install-tangle-buffer
 #+begin_src emacs-lisp
-  (message "Tangling stack-mode files...")
+  ($d "Tangling stack-mode files...")
   (org-babel-tangle)
-  (message "Tangling stack-mode files...done")
+  ($d "Tangling stack-mode files...done")
 #+end_src
+
+i'm dumb
 
 #+name: $install-move-to-load-path
 #+begin_src emacs-lisp
   (message "Moving source files to load-path...")
 #+end_src
+
+really dumb
 
 #+name: $install-move-to-load-path
 #+begin_src emacs-lisp
@@ -93,8 +103,10 @@ accurate up to [2013-02-28 Thu 17:00].
 *** Code Conventions
 - All functions will have `stack-network-` / `stack-comment-` /
   etc. (as appropriate) as a prefix.
+
 - Functions which must alter the mode the user ends up in will be
   further prefixed with `do-` as to flag its impact.
+
 - Functions with no arguments will effect its lack thereof with =()=,
   not =nil=.  (While =()= is /precisely/ the same as =nil= in Lisp
   (and more specifically, Emacs Lisp), it is convention do this.
@@ -102,11 +114,17 @@ accurate up to [2013-02-28 Thu 17:00].
   contributors.
 
 *** Document conventions
-When referring to a function using =a teletype font= and the first
-character is a dash, apply the appropriate prefix,
-e.g. =-do-enter-site= --> =stack-network-do-enter-site=.  It becomes
-tedious to read (not to mention to write!) these functions and
-variables involved in the same package/section so repetitively.
+- When referring to a function using =a teletype font= and the first
+  character is a dash, apply the appropriate prefix,
+  e.g. =-do-enter-site= --> =stack-network-do-enter-site=.  It becomes
+  tedious to read (not to mention to write!) these functions and
+  variables involved in the same package/section so repetitively.
+
+- When explaining a snippet of code, the related code block must be
+  directly beneath or above the explanation.  Blank lines should only
+  be used to make logical distinctions in the document.
+  - except in special circumstances, like keymap code.
+
 
 *** Terminology of Emacs Lisp
 It is expected that the reader has a basic knowledge of Lisp in
