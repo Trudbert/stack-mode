@@ -6,7 +6,13 @@ This document is largely incomplete.  All information is more than
 subject to change.  As Github's =org-mode= parsing is currently
 broken, it is advised that you view this document locally.
 
+* TODO implement noweb-style references
+to control the order of entanglement.  An example of how to do so has
+been worked out under [[id:D365DE92-82B6-4754-98EA-26E28F1D8916][Installing]].
 * Installing
+:PROPERTIES:
+:ID: D365DE92-82B6-4754-98EA-26E28F1D8916
+:END:
 - Note taken on [2013-03-01 Fri 01:04] \\
   More work to be done here.  Figure out exactly what needs to be done
   and update the high-level to do it.
@@ -65,6 +71,9 @@ anyone would fancy a crack at it.
 - [[file:resources/stackexchange.svg][Stack Exchange icon]]
 
 * Stack Exchange API Version 2.1
+:PROPERTIES:
+:ID: DC2032C5-BC11-47E2-8DDB-34467C2BC479
+:END:
 Version 2.1 of the Stack Exchange API allows for read-only access (and
 write-access for comments!) to the Stack Exchange network.
 
@@ -114,41 +123,84 @@ find out more.  (Hint: it even works in this very document!)
 - a-list :: a list of conses, usually pairing a symbol with a
             description or action
 
-** Entry: =stack-mode=
+** Stack Mode (Entry Point): =stack-mode=
+Stack mode is /the/ major mode.  What do I mean by this?  Stack mode
+is the entry point of the whole package.  There is no other way to
+obtain the full, original functionality of the package without first
+running =M-x stack-mode=.  Stack Mode is the only mode available
+interactively.  It is a dispatcher that decides, based on user
+preferences, how the whole system shall behave.  It provides the basic
+framework upon which the rest of the package is built.  Thus, there
+are a few packages that it itself requires:
 #+begin_src emacs-lisp :tangle elisp/stack-mode.el
   ;; stack-mode.el starts here
   
-  (require 'json)    ; Included in Emacs 24+
-  (require 'request) ; Available via MELPA
-  
-  (defgroup stack-exchange nil
-    "Stack Exchange Mode"
-    :group 'environment)
-  
+  (require 'json)
+#+end_src
+
+JSON (JavaScript Object Notation) is the standard by which we
+communicate with Stack Exchange itself.  The details of this
+communication has [[id:DC2032C5-BC11-47E2-8DDB-34467C2BC479][already been discussed]] so I will not repeat myself
+here.  The JSON package provides many utilities for manipulating JSON
+snippets within Emacs Lisp, and is required for the operation of this
+package.  =json.el= is included with Emacs 24+ (and can easily be
+obtained from the ELPA if missing).
+#+begin_src emacs-lisp :tangle elisp/stack-mode.el
+  (require 'request)
+#+end_src
+
+This package also requires =request.el=, a package designed to
+simplify making HTTP requests.  =request.el= was written by [[http://stackoverflow.com/users/727827][SX@tkf]] and
+is maintained and documented on [[http://tkf.github.com/emacs-request/manual.html][Github]]. The package is also available
+for automatic install via MELPA.
+#+begin_src emacs-lisp :tangle elisp/stack-mode.el
+    (defgroup stack-exchange
+      nil
+      "Stack Exchange mode."
+      :group 'environment)
+#+end_src
+
+Simply put, =defgroup= defines a customization group for the graphical
+interface within Emacs.  Since it pulls all of the customizable
+settings together and how to customize them, it is also useful as a
+'wordbank' of sorts for customizing the package manually.  Every
+customizable variable in the entire package is listed here.
+
+Every mode needs a hook, so we here define one.  This hook is run
+/after/ stack-mode is finished loading (when called interactively or
+from Emacs Lisp).
+#+begin_src emacs-lisp :tangle elisp/stack-mode.el
   (defvar stack-mode-hook nil)
-  
+#+end_src
+
+In addition to a hook, most if not all major modes define their own
+keymap.  Stack mode as a whole is no exception, but remembering the
+nature of =stack-mode= as a dispatcher, a keymap seems out of place
+here.  As such, the official keymap for =stack-mode= defines all keys
+to be nil except those that are necessary for the smooth use of Emacs
+as an operating system.  Such necessary keystrokes include =C-g=,
+=M-x=, and others.
+#+begin_src emacs-lisp :tangle elisp/stack-mode.el
   (defvar stack-mode-map
-    (let ((map (make-keymap)))
-      ; TODO define as many keymaps as necessary
-      (define-key map "\C-j" 'newline-and-indent)
+    (let ((map (make-sparse-keymap)))
       map)
-    "Keymap for Stack Exchange major mode")
-  
-  ; Note that this will only open the buffer in our mode.
-  ; There is likely some event we need to handle to take
-  ;  this information in the file and then present the
-  ;  information the user actually wants.
-  ;;;###autoload
-  (add-to-list 'auto-mode-alist '("\\.sx\\'" . stack-mode))
-  
+    "Keymap for Stack Exchange major mode.  This keymap is not
+    used.")
+#+end_src
+
+All that is left to do now is to define each customizable variable and
+load all of the child modes.  We will define the variables later, and
+they will be placed in this file.  We do this via =require=.
+#+begin_src emacs-lisp :tangle elisp/stack-mode.el
   (require 'stack-network-mode)
-  
+#+end_src
+
+We are done here, and =stack-mode= is provided to the user.
+#+begin_src emacs-lisp :tangle elisp/stack-mode.el
   (provide 'stack-mode)
   
   ;; stack-mode.el ends here
 #+end_src
-(I just pasted so I could keep everything as one [[http://www.literateprogramming.com/][literate-programming]]
-[[http://orgmode.org][=org-mode=]] file.  This snippet will be explained later.)
 
 For features that require unsupported write access, the message shall
 be displayed: "Version <api-version> of the Stack Exchange API does
