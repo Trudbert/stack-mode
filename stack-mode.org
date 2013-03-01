@@ -25,6 +25,9 @@ snippets without confirmation.
 
 #+call: $install()
 
+(This document does not yet add the necessary files to the
+=load-path=.  Please do so manually.
+
 What we're basically going to do is this:
 #+name: $install
 #+begin_src emacs-lisp :noweb yes
