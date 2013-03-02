@@ -5,6 +5,17 @@
 # This line crashes Emacs.  Remove it for successful export.
 #+INFOJS_OPT: view:info toc:nil
 
+# This line inhibits Org-Mode from inserting code block execution
+# results into the buffer.  Comment it out if you want this
+# functionality.
+#+PROPERTY results silent
+
+# This line inhibits Org-Mode Babel from expanding noweb-style
+# references into /exported/ output.  Note that these references will
+# still be expanded during execution and entanglement (and necessarily
+# so).
+#+PROPERTY noweb strip-export
+
 This document is largely incomplete.  All information is more than
 subject to change.  As Github's =org-mode= parsing is currently
 broken, it is advised that you view this document locally.
@@ -36,7 +47,7 @@ snippets without confirmation.
 
 What we're basically going to do is this:
 #+name: $install
-#+begin_src emacs-lisp :noweb strip-export :results output
+#+begin_src emacs-lisp
   (defun $d (m) (message (princ m)) (terpri))
   <<relativize-tangle-references>>
   <<install-tangle-buffer>>
@@ -136,6 +147,17 @@ accurate up to [2013-03-02 Sat 17:00].
   be used to make logical distinctions in the document.
   - except in special circumstances, like keymap code.
 
+- In the interest of literate programming, =noweb= syntax is used
+  throught this document.  While detailed organizations may vary
+  greatly, I hope to have some consistency in the organization of this
+  document.  As such, I wish to define a single format for the various
+  major modes:
+  1) Require dependencies
+  2) Setup customization
+  3) Setup keymap
+  4) Define navigation
+  5) Define special functions
+  6) Provide Major Mode
 *** Terminology of Emacs Lisp
 It is expected that the reader has a basic knowledge of Lisp in
 general.  However, there are more than a few terms in this document
@@ -162,7 +184,7 @@ framework upon which the rest of the package is built, and makes sure
 all tools are available.
 
 #+name: build-stack-mode
-#+begin_src emacs-lisp :noweb strip-export :tangle elisp/stack-mode.el
+#+begin_src emacs-lisp :tangle elisp/stack-mode.el
   ;; stack-mode.el starts here
   
   <<stack-require-dependencies>>
@@ -176,11 +198,7 @@ all tools are available.
   ; stack-mode.el ends here
 #+end_src
 
-Thus, there are a few packages that it itself requires:
-#+name: stack-require-dependencies
-#+begin_src emacs-lisp
-  (require 'json)
-#+end_src
+Thus, there are a few packages that it itself requires.
 
 JSON (JavaScript Object Notation) is the standard by which we
 communicate with Stack Exchange itself.  The details of this
@@ -191,19 +209,16 @@ package.  =json.el= is included with Emacs 24+ (and can easily be
 obtained from the ELPA if missing).
 #+name: stack-require-dependencies
 #+begin_src emacs-lisp
-  (require 'request)
+  (require 'json)
 #+end_src
 
 This package also requires =request.el=, a package designed to
 simplify making HTTP requests.  =request.el= was written by [[http://stackoverflow.com/users/727827][SX@tkf]] and
 is maintained and documented on [[http://tkf.github.com/emacs-request/manual.html][Github]]. The package is also available
 for automatic install via MELPA.
-#+name: stack-setup-customization
+#+name: stack-require-dependencies
 #+begin_src emacs-lisp
-    (defgroup stack-exchange
-      nil
-      "Stack Exchange mode."
-      :group 'environment)
+  (require 'request)
 #+end_src
 
 Simply put, =defgroup= defines a customization group for the graphical
@@ -211,6 +226,13 @@ interface within Emacs.  Since it pulls all of the customizable
 settings together and how to customize them, it is also useful as a
 'wordbank' of sorts for customizing the package manually.  Every
 customizable variable in the entire package is listed here.
+#+name: stack-setup-customization
+#+begin_src emacs-lisp
+    (defgroup stack-exchange
+      nil
+      "Stack Exchange mode."
+      :group 'environment)
+#+end_src
 
 Every mode needs a hook, so we here define one.  This hook is run
 /after/ stack-mode is finished loading (when called interactively or
@@ -224,9 +246,9 @@ In addition to a hook, most if not all major modes define their own
 keymap.  Stack mode as a whole is no exception, but remembering the
 nature of =stack-mode= as a dispatcher, a keymap seems out of place
 here.  As such, the official keymap for =stack-mode= defines all keys
-to be nil except those that are necessary for the smooth use of Emacs
-as an operating system.  Such necessary keystrokes include =C-g=,
-=M-x=, and others.
+to be =nil= except those that are necessary for the smooth use of
+Emacs as an operating system.  Such necessary keystrokes include
+=C-g=, =M-x=, and others.
 #+name: stack-setup-keymap
 #+begin_src emacs-lisp
   (defvar stack-mode-map
@@ -261,10 +283,10 @@ another mode, as these functions don't make any sense in any other
 context.
 
 At all times, the percentage of API requests left can be displayed in
-the modeline according to the customizable variable (nil|t)
+the modeline according to the customizable variable (=nil= or =t=)
 =stack-display-API-requests-in-modeline= and shall turn red (if
 activated) when use exceeds =stack-display-API-color-threshold= (a
-float in [0, 1], where 0 never changes the color).
+float in $[0, 1]$, where $0$ never changes the color).
 
 ** Network Mode: =stack-network-mode=
 :PROPERTIES:
@@ -280,7 +302,7 @@ Network mode is a major mode that defines functions and binds keys
 useful for browsing and organizing sites in the Stack Exchange
 network.
 #+name: build-network-mode
-#+begin_src emacs-lisp :noweb yes :tangle "elisp/stack-network-mode.el"
+#+begin_src emacs-lisp :tangle "elisp/stack-network-mode.el"
 ;; stack-network-mode.el starts here
 
 <<network-dependencies>>
@@ -292,10 +314,9 @@ network.
 ;; stack-network-mode.el ends here
 #+end_src
 
-  Since it is an integrated part of =stack-mode= and
-dispatches to several sibling modes, it is imperative that
-=stack-mode= (and all of its child modes) be available upon entering
-=stack-network-mode=.
+Since it is an integrated part of =stack-mode= and dispatches to
+several sibling modes, it is imperative that =stack-mode= (and all of
+its child modes) be available upon entering =stack-network-mode=.
 #+name: network-dependencies
 #+begin_src emacs-lisp
   ;(require 'stack-mode)
@@ -410,8 +431,9 @@ store these explicitly.
 - meta.tex :: TeX, LaTeX, and Friends (Meta)
 - meta.so :: StackOverflow (Meta)
 
-As you can see, these could easily be calculated from the existing
-data.
+As you can see, these meta sites (and descriptions) could easily be
+calculated from the existing data, so it would be borderline redundant
+to define these.
 
 #+name: stack-setup-api
 #+begin_src emacs-lisp
@@ -419,7 +441,95 @@ data.
     '(("tex" . "TeX, LaTeX, and Friends")
       ("so" . "StackOverflow")))
 #+end_src
+**** TODO Find a way to get this dynamically from SE
+I'd hate to have to keep maintaining this /just/ because a new site is
+up.
+*** Other Functions
+=stack-save= gets the ID of the question under point and stores
+it as an Org node:
 
+#+begin_src org
+  ,* tex.stackexchange.com
+  ,  :PROPERTIES:
+  ,  :STACK_API_TOKEN: tex
+  ,  :STACK_URL: http://tex.stackexchange.com
+  ,  :END:
+  
+  ,** COMMENT
+  ,What should the header be?
+  ,- tex.stackexchange.com
+  ,- tex (api token)
+  ,- TeX, LaTeX, and Friends (the default text)
+  ,  - a problem if it changes
+  ,- TeXpertexchange.com (the customized text)
+  ,  - which could also easily change
+  ,** Example question
+  ,:PROPERTIES:
+  ,:STACK_ID: 1234567
+  ,:STACK_SCORE: 12
+  ,:STACK_AUTHOR: 12345 (vermiculus)
+  ,:STACK_ASK_TIME: [2013-03-02 Sat 10:43]
+  ,:STACK_LAST_EDIT: [2013-03-02 Sat 10:44]
+  ,:STACK_LAST_EDITOR: 12345 (vermiculus)
+  ,:STACK_WIKI: false
+  ,:STACK_URL: http://tex.stackexchange.com/q/123456
+  ,:END:
+  ,Question body.  (Stored as Markdown, not org.  They do not have the
+  ,same feature set, and I'd rather not convert that as well.)
+  ,*** Comments
+  ,**** egreg
+  ,:PROPERTIES:
+  ,:STACK_ID: do comments have IDs?
+  ,:STACK_SCORE: 3
+  ,:STACK_AUTHOR: 54321 (egreg)
+  ,:STACK_COMMENT_TIME: [2013-03-02 Sat 10:43]
+  ,:STACK_LAST_EDIT: [2013-03-02 Sat 10:44]
+  ,:END:
+  ,@vermiculus, that's not a question.
+  ,**** vermiculus
+  ,:PROPERTIES:
+  ,:STACK_ID: do comments have IDs?
+  ,:STACK_SCORE: 3
+  ,:STACK_AUTHOR: 54321 (egreg)
+  ,:STACK_COMMENT_TIME: [2013-03-02 Sat 10:43]
+  ,:STACK_LAST_EDIT: [2013-03-02 Sat 10:44]
+  ,:END:
+  ,@egreg, that's not a comment!  Wait - damn.
+  ,*** Answers
+  ,**** egreg
+  ,:PROPERTIES:
+  ,:STACK_ID: 12345678
+  ,:STACK_SCORE: 125
+  ,:STACK_AUTHOR: 54321 (egreg)
+  ,:STACK_ANSWER_TIME: [2013-03-02 Sat 11:43]
+  ,:STACK_LAST_EDIT: [2013-03-02 Sat 11:44]
+  ,:STACK_LAST_EDITOR: 54321 (egreg)
+  ,:STACK_WIKI: true
+  ,:STACK_URL: http://tex.stackexchange.com/q/123456/a/12345678
+  ,:END:
+  ,Answer body (stored as Markdown).  I'm egreg and I'm awesome.  I've
+  ,got more internet money than actual money.  Here's a community wiki.
+  ,**** tohecz
+  ,:PROPERTIES:
+  ,:STACK_ID: 12345679
+  ,:STACK_SCORE: -5
+  ,:STACK_AUTHOR: 67890 (tohecz)
+  ,:STACK_ANSWER_TIME: [2013-03-02 Sat 10:50]
+  ,:STACK_LAST_EDIT: [2013-03-02 Sat 11:00]
+  ,:STACK_LAST_EDITOR: 67890 (tohecz)
+  ,:STACK_WIKI: false
+  ,:STACK_URL: http://tex.stackexchange.com/q/123456/a/12345679
+  ,:END:
+  ,Why use Emacs?  Geez.  TeXMaker ftw!
+#+end_src
+
+=stack-view-saved= switches to non-networked mode.  That is, all
+questions available to be seen and browsed are those saved in
+=.emacs.d/.stack-mode/saved.org=.  This 'mode' does not require
+Emacs to create or sustain any sort of network connection.
+
+This is an important feature of Stack Mode.  Without offline access to
+information, it loses a great deal of its appeal.
 *** Conclusion
 Network mode is the highest-level mode available within =stack-mode=.
 Its primary purpose is to be a dispatcher for other commands.  Since
@@ -437,10 +547,6 @@ should be configurable to support this.
   (provide 'stack-network-mode)
 #+end_src
 ** Question Browse Mode: =stack-question-browse-mode=
-- Note taken on [2013-02-27 Wed 15:28] \\
-  Upvoting and downvoting could easily be supported in this mode, but
-  shouldn't be.  How can you possibly upvote or downvote something just
-  be reading the title?
 
 This mode is buffer-read-only.
 
@@ -462,20 +568,20 @@ Display statistical information on top:
    answers, accept status, and votes.  (The following example is from
    [[http://tex.stackexchange.com/questions/83970/auctex-preview-latex-and-ghostscript-emacs][one of my own questions]] retrieved [2013-02-27 Wed 15:36].)
 
- #+begin_src text :tangle "elisp/question-browse-mode.interface"
-   Full title: AUCTeX, preview-latex, and Ghostscript (Emacs)        |
-        Asker: vermiculus (572)                            Bounty:  50
-      Answers:  1 (Accepted)            Active: [2013-02-27 Wed 15:44]
-         Tags: emacs auctex preview ghostscript
- #+end_src
+#+begin_src text :tangle "elisp/question-browse-mode.interface"
+  Full title: AUCTeX, preview-latex, and Ghostscript (Emacs)
+       Asker: vermiculus (572)                            Bounty:  50
+     Answers:  1 (Accepted)            Active: [2013-02-27 Wed 15:44]
+        Tags: emacs auctex preview ghostscript
+#+end_src
 
  - if point is not on a question, display site trends in general
 
- #+begin_example
-         Site: TeX, LaTeX, and Friends
-        Users: 400
-   Unanswered: 15 (0.003)
- #+end_example
+#+begin_example
+        Site: TeX, LaTeX, and Friends
+       Users: 400
+  Unanswered: 15 (0.003)
+#+end_example
 
    - number of users who have 200 rep or more
    - the number beside unanswered is a float in [0, 1]
@@ -488,6 +594,7 @@ Display statistical information on top:
  - p :: previous question
  - RET :: enter question ([[*Question%20Detail%20Mode:%20%3Dstack-question-detail-mode%3D][Question Detail Mode]])
  - s :: star a question
+ - S :: save question
  - A :: ask question ([[*Ask%20Mode:%20%3Dstack-ask-mode%3D][Ask Mode]])
  - q :: go back to [[*Network%20Mode:%20%3Dstack-network-mode%3D][Network Mode]]
  - m :: switch to meta
@@ -504,8 +611,8 @@ The question and each answer are top-level nodes.
 - = :: upvote question/answer
 - - :: downvote
 - s :: star
-- C-u s :: save offline as an =org= node.  (The archive file is kept
-           in .emacs.d)
+- S :: save offline as an =org= node.  (The archive file is kept in
+       .emacs.d)
 ** Comment Mode: =stack-comment-mode=
 
 Minor mode for use atop markdown-mode.
