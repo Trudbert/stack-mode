@@ -3,11 +3,21 @@
 #+Date: [2013-02-28 Thu]
 
 # This line crashes Emacs.  Remove it for successful export.
-#+INFOJS_OPT view:content
+#+INFOJS_OPT: view:info
 
 This document is largely incomplete.  All information is more than
 subject to change.  As Github's =org-mode= parsing is currently
 broken, it is advised that you view this document locally.
+
+#+name: relativize-tangle-references
+#+begin_src emacs-lisp
+  (let ((curdir (replace-regexp-in-string
+                 (expand-file-name "~/") "~/"
+                 (file-name-directory
+                  (or load-file-name buffer-file-name)))))
+    (replace-regexp (concat ":tangle \"" curdir "\([A-z-+/.]+\)" "\"") "\1")
+    (message curdir))
+#+end_src
 
 * TODO implement noweb-style references
 to control the order of entanglement.  An example of how to do so has
@@ -43,6 +53,7 @@ What we're basically going to do is this:
   (defun $d (m) (message (princ m)) (terpri))
   <<$install-tangle-buffer>>
   <<$install-move-to-load-path>>
+  ;(require 'stack-mode)
 #+end_src
 
 oh shit
@@ -125,7 +136,6 @@ accurate up to [2013-02-28 Thu 17:00].
   be used to make logical distinctions in the document.
   - except in special circumstances, like keymap code.
 
-
 *** Terminology of Emacs Lisp
 It is expected that the reader has a basic knowledge of Lisp in
 general.  However, there are more than a few terms in this document
@@ -148,11 +158,27 @@ obtain the full, original functionality of the package without first
 running =M-x stack-mode=.  Stack Mode is the only mode available
 interactively.  It is a dispatcher that decides, based on user
 preferences, how the whole system shall behave.  It provides the basic
-framework upon which the rest of the package is built.  Thus, there
-are a few packages that it itself requires:
-#+begin_src emacs-lisp :tangle elisp/stack-mode.el
+framework upon which the rest of the package is built, and makes sure
+all tools are available.
+
+#+name: build-stack-mode
+#+begin_src emacs-lisp :noweb yes :tangle elisp/stack-mode.el
   ;; stack-mode.el starts here
   
+  <<stack-require-dependencies>>
+  <<stack-setup-customization>>
+  <<stack-setup-keymap>>
+  <<stack-setup-api>>
+  <<stack-load-children>>
+  
+  (provide 'stack-mode)
+  
+  ; stack-mode.el ends here
+#+end_src
+
+Thus, there are a few packages that it itself requires:
+#+name: stack-require-dependencies
+#+begin_src emacs-lisp
   (require 'json)
 #+end_src
 
@@ -163,7 +189,8 @@ here.  The JSON package provides many utilities for manipulating JSON
 snippets within Emacs Lisp, and is required for the operation of this
 package.  =json.el= is included with Emacs 24+ (and can easily be
 obtained from the ELPA if missing).
-#+begin_src emacs-lisp :tangle elisp/stack-mode.el
+#+name: stack-require-dependencies
+#+begin_src emacs-lisp
   (require 'request)
 #+end_src
 
@@ -171,7 +198,8 @@ This package also requires =request.el=, a package designed to
 simplify making HTTP requests.  =request.el= was written by [[http://stackoverflow.com/users/727827][SX@tkf]] and
 is maintained and documented on [[http://tkf.github.com/emacs-request/manual.html][Github]]. The package is also available
 for automatic install via MELPA.
-#+begin_src emacs-lisp :tangle elisp/stack-mode.el
+#+name: stack-setup-customization
+#+begin_src emacs-lisp
     (defgroup stack-exchange
       nil
       "Stack Exchange mode."
@@ -187,7 +215,8 @@ customizable variable in the entire package is listed here.
 Every mode needs a hook, so we here define one.  This hook is run
 /after/ stack-mode is finished loading (when called interactively or
 from Emacs Lisp).
-#+begin_src emacs-lisp :tangle elisp/stack-mode.el
+#+name: stack-setup-customization
+#+begin_src emacs-lisp
   (defvar stack-mode-hook nil)
 #+end_src
 
@@ -198,7 +227,8 @@ here.  As such, the official keymap for =stack-mode= defines all keys
 to be nil except those that are necessary for the smooth use of Emacs
 as an operating system.  Such necessary keystrokes include =C-g=,
 =M-x=, and others.
-#+begin_src emacs-lisp :tangle elisp/stack-mode.el
+#+name: stack-setup-keymap
+#+begin_src emacs-lisp
   (defvar stack-mode-map
     (let ((map (make-sparse-keymap)))
       map)
@@ -209,15 +239,15 @@ as an operating system.  Such necessary keystrokes include =C-g=,
 All that is left to do now is to define each customizable variable and
 load all of the child modes.  We will define the variables later, and
 they will be placed in this file.  We do this via =require=.
-#+begin_src emacs-lisp :tangle elisp/stack-mode.el
+#+name: stack-load-children
+#+begin_src emacs-lisp
   (require 'stack-network-mode)
 #+end_src
 
 We are done here, and =stack-mode= is provided to the user.
-#+begin_src emacs-lisp :tangle elisp/stack-mode.el
+#+name: provide-stack-mode
+#+begin_src emacs-lisp
   (provide 'stack-mode)
-  
-  ;; stack-mode.el ends here
 #+end_src
 
 For features that require unsupported write access, the message shall
@@ -237,29 +267,42 @@ activated) when use exceeds =stack-display-API-color-threshold= (a
 float in [0, 1], where 0 never changes the color).
 
 ** Network Mode: =stack-network-mode=
-Network mode is a major mode (derived from =special-mode=) that
-defines functions and binds keys useful for browsing and organizing
-sites in the Stack Exchange network.  Since it is an integrated part
-of =stack-mode= and dispatches to several sibling modes, it is
-imperative that =stack-mode= (and all of its child modes) be available
-upon entering =stack-network-mode=.  (For the purposes of testing,
-=(require 'stack-mode)= has been commented out to avoid =load-path=
-issues.  (I'm really lazy.)  In addition, a debugging function has
-been added to facilitate messaging that would be useful to track down
-bugs.)
-#+begin_src emacs-lisp :tangle elisp/stack-network-mode.el
-  ;; stack-network-mode.el starts here
-  
+:PROPERTIES:
+:ID: A3928908-C7A4-43C5-A31A-E3145A134664
+:END:
+- Note taken on [2013-03-01 Fri 16:04] \\
+  For the purposes of testing, =(require 'stack-mode)= has been
+  commented out to avoid =load-path= issues.  (I'm really lazy.)  In
+  addition, a debugging function has been added to facilitate messaging
+  that would be useful to track down bugs.
+
+Network mode is a major mode that defines functions and binds keys
+useful for browsing and organizing sites in the Stack Exchange
+network.
+#+name: build-network-mode
+#+begin_src emacs-lisp :noweb yes :tangle "elisp/stack-network-mode.el"
+;; stack-network-mode.el starts here
+
+<<network-dependencies>>
+<<network-customization>>
+<<network-keymap>>
+<<network-define-mode-functions>>
+<<provide-network-mode>>
+
+;; stack-network-mode.el ends here
+#+end_src
+
+  Since it is an integrated part of =stack-mode= and
+dispatches to several sibling modes, it is imperative that
+=stack-mode= (and all of its child modes) be available upon entering
+=stack-network-mode=.
+#+name: network-dependencies
+#+begin_src emacs-lisp
   ;(require 'stack-mode)
-  
-  (defvar stack-network-display-debug-messages t)
-  
-  (defun stack-network-debug (format &rest args)
-    (if stack-network-display-debug-messages (message format args)))
 #+end_src
 
 Here is the planned interface:
-#+begin_src emacs-lisp :tangle elisp/stack-network-mode-navtest-buffer.test
+#+begin_src text :tangle elisp/stack-network-mode.interface
   -*- stack-network -*-
   
      4 unread inbox items
@@ -280,7 +323,8 @@ release.)
 
 A mode hook is provided for customizability.  I am not sure that this
 hook is automatically run or not per =special-mode=. (TODO)
-#+begin_src emacs-lisp :tangle elisp/stack-network-mode.el
+#+name: network-customization
+#+begin_src emacs-lisp
   (defvar stack-network-mode-hook nil)
 #+end_src
 
@@ -297,7 +341,8 @@ hook is automatically run or not per =special-mode=. (TODO)
 - C-u u :: profile summary for user
 - i :: goto [[*Inbox%20Mode:%20%3Dstack-inbox-mode%3D][Inbox Mode]]
 
-#+begin_src emacs-lisp :tangle elisp/stack-network-mode.el
+#+name: network-keymap
+#+begin_src emacs-lisp
   (defvar stack-network-mode-map
     (let ((map (make-keymap)))
       (define-key map "n"     'stack-network-next-site)
@@ -320,7 +365,8 @@ hook is automatically run or not per =special-mode=. (TODO)
 The primary methods of navigation =-next-site=, =-previous-site=, and
 =-enter-site=.  The first two of these three do only what makes sense:
 they move point up and down the list of available sites.
-#+begin_src emacs-lisp :tangle elisp/stack-network-mode.el
+#+name: network-define-mode-functions
+#+begin_src emacs-lisp
   (defun stack-network-next-site ()
     "Move to the next site in the list."
     (interactive)
@@ -349,7 +395,8 @@ rests.  There is as of yet no method of retrieving this dynamically,
 so a definition-style a-list is made at the very top (=stack-mode.el=)
 to facilitate easy use.
 
-#+begin_src emacs-lisp :tangle elisp/stack-mode.el
+#+name: stack-setup-api
+#+begin_src emacs-lisp
   (defvar stack-exchange-api-key-to-site-alist
     ; define
     )
@@ -361,7 +408,8 @@ Its primary purpose is to be a dispatcher for other commands.  Since
 many users reside on exactly one StackExchange site, =stack-mode=
 should be configurable to support this.
 
-#+begin_src emacs-lisp :tangle elisp/stack-network-mode.el
+#+name: provide-network-mode
+#+begin_src emacs-lisp
   (define-derived-mode stack-network-mode
     special-mode
     "SX-Network"
@@ -397,19 +445,23 @@ Display statistical information on top:
    reputation, the last revisor, their reputation, tags, views,
    answers, accept status, and votes.  (The following example is from
    [[http://tex.stackexchange.com/questions/83970/auctex-preview-latex-and-ghostscript-emacs][one of my own questions]] retrieved [2013-02-27 Wed 15:36].)
-   #+begin_example
+
+ #+begin_src text :tangle "elisp/question-browse-mode.interface"
    Full title: AUCTeX, preview-latex, and Ghostscript (Emacs)        |
         Asker: vermiculus (572)                            Bounty:  50
       Answers:  1 (Accepted)            Active: [2013-02-27 Wed 15:44]
          Tags: emacs auctex preview ghostscript
-   #+end_example
+ #+end_src
+
  - if point is not on a question, display site trends in general
-   #+begin_example
+
+ #+begin_example
          Site: TeX, LaTeX, and Friends
         Users: 400
    Unanswered: 15 (0.003)
-   #+end_example
-   - users is 200 rep or more
+ #+end_example
+
+   - number of users who have 200 rep or more
    - the number beside unanswered is a float in [0, 1]
      - 0 :: all questions are answered
      - 1 :: no questions are answered
@@ -449,7 +501,8 @@ up below in comment-mode.  Should support mentions.
 
 - C-c C-c :: Commit comment.
 - C-c C-k :: Cancel comment.
-- TAB :: Expand username, if possible (must be after =@=)
+- TAB :: Expand username, if possible (must be after =@=) with
+         preference to those nearest in the conversation
 ** Ask Mode: =stack-ask-mode=
 
 A minor mode atop =markdown-mode=, adding support for tagging.

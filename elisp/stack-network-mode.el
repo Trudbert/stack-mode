@@ -2,14 +2,7 @@
 ;; stack-network-mode.el starts here
 
 ;(require 'stack-mode)
-
-(defvar stack-network-display-debug-messages t)
-
-(defun stack-network-debug (format &rest args)
-  (if stack-network-display-debug-messages (message format args)))
-
 (defvar stack-network-mode-hook nil)
-
 (defvar stack-network-mode-map
   (let ((map (make-keymap)))
     (define-key map "n"     'stack-network-next-site)
@@ -26,7 +19,6 @@
     (define-key map "\C-i"  'stack-network-display-details) ; tab
     map)
   "Keymap for Stack Exchange: Network Browser major mode")
-
 (defun stack-network-next-site ()
   "Move to the next site in the list."
   (interactive)
@@ -45,7 +37,6 @@
   (message "I have no idea what I'm doing")
   (stack-exchange-question-browse-mode
    (stack-network-get-site-under-point)))
-
 (define-derived-mode stack-network-mode
   special-mode
   "SX-Network"
@@ -53,5 +44,7 @@
 Exchange Network.")
 
 (provide 'stack-network-mode)
+
+;; stack-network-mode.el ends here
 
 ;; stack-network-mode.el ends here
