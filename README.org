@@ -22,3 +22,103 @@ from =stack-mode.org=, so make sure =org-version= is /at least 7.0/
 
 This README will eventually hold a high-level feature list and details
 on installation and configuration.
+* Installing
+:PROPERTIES:
+:ID: D365DE92-82B6-4754-98EA-26E28F1D8916
+:END:
+- Note taken on [2013-03-01 Fri 01:04] \\
+  More work to be done here.  Figure out exactly what needs to be done
+  and update the high-level to do it.
+Installation is automatic if done through a package manager such as
+MELPA; in this case, it is unbefitting to require extra user
+involvement.  But, since this is a /literate programming document/,
+I'd like to explain how the process could be done manually.
+
+If you are viewing this lovely file in Emacs but are still similarly
+'eager' about using =stack-mode=, go ahead and =C-c C-c= [fn::which,
+on a default installation, runs =org-babel-execute-src-block=] the
+following line.  It will take care of installation for you.  You will
+need to confirm execution twice if you have not configured
+=org-babel-confirm-evaluate= to allow execuation of Emacs Lisp
+snippets without confirmation.
+
+#+call: $install()
+
+(This document does not yet add the necessary files to the
+=load-path=.  Please do so manually.
+
+What we're basically going to do is this:
+#+name: $install
+#+begin_src emacs-lisp
+  (defun $d (m) (message (princ m)) (terpri))
+  <<relativize-tangle-references>>
+  <<install-tangle-buffer>>
+  <<install-move-to-load-path>>
+  ;(require 'stack-mode)
+#+end_src
+
+oh shit
+
+#+name: relativize-tangle-references
+#+begin_src emacs-lisp
+  (let ((curdir (replace-regexp-in-string
+                 (expand-file-name "~/") "~/"
+                 (file-name-directory
+                  (or load-file-name buffer-file-name)))))
+    (replace-regexp (concat ":tangle \"" curdir "\([A-z-+/.]+\)" "\"") "\1")
+    (message curdir))
+#+end_src
+
+yeah shit
+
+#+name: install-tangle-buffer
+#+begin_src emacs-lisp
+  ($d "Tangling stack-mode files...")
+  (org-babel-tangle-file "stack-mode.org")
+  ($d "Tangling stack-mode files...done")
+#+end_src
+
+i'm dumb
+
+#+name: install-move-to-load-path
+#+begin_src emacs-lisp
+  (message "Moving source files to load-path...")
+#+end_src
+
+really dumb
+
+#+name: install-move-to-load-path
+#+begin_src emacs-lisp
+  (message "More moving...")
+#+end_src
+
+* Resources
+- [[https://api.stackexchange.com/docs][SX.API v2.1]]
+- [[http://stackapps.com/apps/oauth/register][StackApps Registration Page]]
+- [[http://www.emacswiki.org/emacs/ModeTutorial][Creating Major Modes for Emacs]]
+* Icon
+Stack Exchange Mode for Emacs has no explicit use for an icon,
+although standard SVG files have been gathered in =resources/= if
+anyone would fancy a crack at it.
+
+- [[file:resources/emacs.svg][Emacs icon]]
+- [[file:resources/stackexchange.svg][Stack Exchange icon]]
+
+* Stack Exchange API Version 2.1
+:PROPERTIES:
+:ID: DC2032C5-BC11-47E2-8DDB-34467C2BC479
+:END:
+Version 2.1 of the Stack Exchange API allows for read-only access (and
+write-access for comments!) to the Stack Exchange network.
+
+The Stack Exchange API uses JSON as its main method of interaction.
+
+Available Features:
+
+- Write methods 
+
+(yeah, this needs to be expanded.)
+** COMMENT Disclaimer
+This is meant more as a reference for when I am (or another user is)
+not online.  This is not official documentation, although I hope it is
+accurate up to [2013-03-02 Sat 17:00].
