@@ -16,9 +16,27 @@
 #+PROPERTY noweb strip-export
 
 This document is largely incomplete.  All information is more than
-subject to change.  As Github's =org-mode= parsing is currently
+subject to change.  As GitHub's =org-mode= parsing is currently
 broken, it is advised that you view this document locally.
 
+* Goals
+** Provide a full-featured, Emacs-based Stack Exchange experience.
+This package must take reasonably full advantage of the Stack Exchange
+API to the extent supported by Stack Exchange.  Note there are many
+features in this document which are expressly not supported by the
+current Stack Exchange API at the time of writing (2.1, [2013-03-02]).
+They are based upon the foreseeable interactions a user will have with
+any given Stack Exchange site, and are included to ensure that the
+interface is consistent.
+** Provide offline access to user-specified questions and answers.
+There must be no requirement to be on a network in order to use this
+package to its fullest.
+*** TODO comment on archived nodes?
+** Uphold the rights of the user to easily modify this package.
+This package must make every effort to explain its methodologies and
+algorithms.  It must explain its variables and hooks, and how to
+customize them in a way that is useful to Stack Mode in its normal
+execution.
 * Conventions and Terminology
 ** Code Conventions
 - All functions will have `stack-network-` / `stack-comment-` /
@@ -33,7 +51,7 @@ broken, it is advised that you view this document locally.
   to follow this convention may needlessly confuse potential
   contributors.
 
-** Document conventions
+** Document Conventions
 - When referring to a function using =a teletype font= and the first
   character is a dash, apply the appropriate prefix,
   e.g. =-do-enter-site= --> =stack-network-do-enter-site=.  It becomes
@@ -43,16 +61,16 @@ broken, it is advised that you view this document locally.
 - When explaining a snippet of code, the related code block must be
   directly beneath or above the explanation.  Blank lines should only
   be used to make logical distinctions in the document.
-  - except in special circumstances, like keymap code.
+  - except in special circumstances, like key-map code.
 
 - In the interest of literate programming, =noweb= syntax is used
-  throught this document.  While detailed organizations may vary
+  throughout this document.  While detailed organizations may vary
   greatly, I hope to have some consistency in the organization of this
   document.  As such, I wish to define a single format for the various
   major modes:
   1) Require dependencies
   2) Setup customization
-  3) Setup keymap
+  3) Setup key-map
   4) Define navigation
   5) Define special functions
   6) Provide Major Mode
@@ -73,9 +91,12 @@ find out more.  (Hint: it even works in this very document!)
 - font-lock :: (also font lock) Commonly known as just /font/, this is
                the face of certain pieces of text on the screen.  Note
                that this information is not stored in the buffer, but
-               as elisp expressions (usually a-lists of =(regexp
+               as Emacs Lisp expressions (usually a-lists of =(regexp
                . font)=)
 
+** Examples
+Example questions and answers are taken from [[http://tex.stackexchange.com/questions/83970/auctex-preview-latex-and-ghostscript-emacs][one of my own questions]]
+retrieved [2013-02-27 Wed 15:36] unless obviously staged.
 * Stack Mode (Entry Point): =stack-mode=
 Stack mode is /the/ major mode.  What do I mean by this?  Stack mode
 is the entry point of the whole package.  There is no other way to
@@ -117,7 +138,7 @@ obtained from the ELPA if missing).
 
 This package also requires =request.el=, a package designed to
 simplify making HTTP requests.  =request.el= was written by [[http://stackoverflow.com/users/727827][SX@tkf]] and
-is maintained and documented on [[http://tkf.github.com/emacs-request/manual.html][Github]]. The package is also available
+is maintained and documented on [[http://tkf.github.com/emacs-request/manual.html][GitHub]]. The package is also available
 for automatic install via MELPA.
 #+name: stack-require-dependencies
 #+begin_src emacs-lisp
@@ -127,7 +148,7 @@ for automatic install via MELPA.
 Simply put, =defgroup= defines a customization group for the graphical
 interface within Emacs.  Since it pulls all of the customizable
 settings together and how to customize them, it is also useful as a
-'wordbank' of sorts for customizing the package manually.  Every
+'word bank' of sorts for customizing the package manually.  Every
 customizable variable in the entire package is listed here.
 #+name: stack-setup-customization
 #+begin_src emacs-lisp
@@ -146,9 +167,9 @@ from Emacs Lisp).
 #+end_src
 
 In addition to a hook, most if not all major modes define their own
-keymap.  Stack mode as a whole is no exception, but remembering the
-nature of =stack-mode= as a dispatcher, a keymap seems out of place
-here.  As such, the official keymap for =stack-mode= defines all keys
+key-map.  Stack mode as a whole is no exception, but remembering the
+nature of =stack-mode= as a dispatcher, a key-map seems out of place
+here.  As such, the official key-map for =stack-mode= defines all keys
 to be =nil= except those that are necessary for the smooth use of
 Emacs as an operating system.  Such necessary keystrokes include
 =C-g=, =M-x=, and others.
@@ -176,9 +197,9 @@ We are done here, and =stack-mode= is provided to the user.
 #+end_src
 
 For features that require unsupported write access, the message shall
-be displayed: "Version <api-version> of the Stack Exchange API does
+be displayed: "Version <API-version> of the Stack Exchange API does
 not support this action."  The functions shall exist (along with their
-keymaps), but the functionality will be replaced by the display of
+key-maps), but the functionality will be replaced by the display of
 such a message.
 
 When I say minor mode, I may mean a major mode mostly based off of
@@ -186,8 +207,8 @@ another mode, as these functions don't make any sense in any other
 context.
 
 At all times, the percentage of API requests left can be displayed in
-the modeline according to the customizable variable (=nil= or =t=)
-=stack-display-API-requests-in-modeline= and shall turn red (if
+the mode line according to the customizable variable (=nil= or =t=)
+=stack-display-API-requests-in-mode-line= and shall turn red (if
 activated) when use exceeds =stack-display-API-color-threshold= (a
 float in $[0, 1]$, where $0$ never changes the color).
 
@@ -252,7 +273,7 @@ hook is automatically run or not per =special-mode=. (TODO)
   (defvar stack-network-mode-hook nil)
 #+end_src
 
-** Default Keymap
+** Default Key-map
 
 - n :: next site
 - p :: previous site
@@ -314,7 +335,7 @@ they move point up and down the list of available sites.
      (stack-network-get-site-under-point)))
 #+end_src
 
-If you look at the defintion of =-do-enter-site=, you will notice that
+If you look at the definition of =-do-enter-site=, you will notice that
 the heretofore undefined =-get-site-under-point= is used.  As you may
 have guessed, the purpose of this function is to obtain the 'string
 representation' of the Stack Exchange site upon which point currently
@@ -344,7 +365,9 @@ to define these.
     '(("tex" . "TeX, LaTeX, and Friends")
       ("so" . "StackOverflow")))
 #+end_src
-*** TODO Find a way to get this dynamically from SE
+*** DONE Find a way to get this dynamically from SE
+- Note taken on [2013-03-02 Sat 22:00] \\
+  Use =/sites=.
 I'd hate to have to keep maintaining this /just/ because a new site is
 up.
 ** Other Functions
@@ -436,7 +459,7 @@ information, it loses a great deal of its appeal.
 ** Conclusion
 Network mode is the highest-level mode available within =stack-mode=.
 Its primary purpose is to be a dispatcher for other commands.  Since
-many users reside on exactly one StackExchange site, =stack-mode=
+many users reside on exactly one Stack Exchange site, =stack-mode=
 should be configurable to support this.
 
 #+name: provide-network-mode
@@ -450,7 +473,6 @@ should be configurable to support this.
   (provide 'stack-network-mode)
 #+end_src
 * Question Browse Mode: =stack-question-browse-mode=
-
 This mode is buffer-read-only.
 
 Font Lock
@@ -461,15 +483,12 @@ Font Lock
 Sorting and Filtering
 - should be able to sort
 
-Green font-lock for answered questions, red for unanswered.
-
-Question starring, dispatcher-y feel.
+Question starring, dispatcher-y feel, similar to network mode.
 
 Display statistical information on top:
  - if point is on a question, display the user who asked it, their
-   reputation, the last revisor, their reputation, tags, views,
-   answers, accept status, and votes.  (The following example is from
-   [[http://tex.stackexchange.com/questions/83970/auctex-preview-latex-and-ghostscript-emacs][one of my own questions]] retrieved [2013-02-27 Wed 15:36].)
+   reputation, the last reviser, their reputation, tags, views,
+   answers, accept status, and votes.
 
 #+begin_src text :tangle "elisp/question-browse-mode.interface"
   Full title: AUCTeX, preview-latex, and Ghostscript (Emacs)
@@ -491,8 +510,7 @@ Display statistical information on top:
      - 0 :: all questions are answered
      - 1 :: no questions are answered
 
-** Default Keymap
-
+** Default Key-map
  - n :: next question (move point down)
  - p :: previous question
  - RET :: enter question ([[*Question%20Detail%20Mode:%20%3Dstack-question-detail-mode%3D][Question Detail Mode]])
@@ -509,10 +527,11 @@ This mode is buffer-read-only.
 
 The question and each answer are top-level nodes.
 
-** Default Keymap
+** Default Key-map
 
-- = :: upvote question/answer
-- - :: downvote
+- = :: upvote question/answer/comment
+- - :: downvote question/answer
+- f :: flag question/answer/comment
 - s :: star
 - S :: save offline as an =org= node.  (The archive file is kept in
        .emacs.d)
@@ -523,7 +542,7 @@ Minor mode for use atop markdown-mode.
 Valid for Questions and Answers; just a small window that would open
 up below in comment-mode.  Should support mentions.
 
-** Default Keymap
+** Default Key-map
 
 - C-c C-c :: Commit comment.
 - C-c C-k :: Cancel comment.

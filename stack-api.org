@@ -1,0 +1,222 @@
+#+Title: Stack Exchange API
+
+#+PROPERTY result silent
+
+This is meant more as a reference for when I am (or another user is)
+not online.  This is not official documentation, although I hope it is
+accurate up to [2013-03-02 Sat 17:00].
+
+* Supporting Utilitarian Functions
+#+begin_src emacs-lisp
+  (defvar stack-time-format-string
+    "[%Y-%m-%d %a %H:%M:%S]")
+#+end_src
+
+#+begin_src emacs-lisp
+  (defun stack-make-time (epoch-time)
+    (format-time-string stack-time-format-string))
+#+end_src
+
+* Version 2.1
+Version 2.1 of the Stack Exchange API allows for read-only access (and
+write-access for comments!) to the Stack Exchange network.
+
+The Stack Exchange API uses JSON as its main method of interaction.
+
+Available Features:
+
+- Write methods 
+
+(yeah, this needs to be expanded.)
+
+** Supported Functions
+This is a list of functions in Stack Mode that are supported by this
+version of the API.  
+** Emacs Lisp Implementation
+In order to lubricate the interface between Emacs and Stack Exchange's
+JSON-based API.
+*** Authentication
+https://api.stackexchange.com/docs/authentication
+*** Objects
+https://api.stackexchange.com/docs?tab=type#docs
+**** DONE =access_token=
+#+begin_src emacs-lisp
+  (defstruct stack-access-token
+    access-token
+    account-id
+    expires-on-date ; may be absent (nil)
+    scope ; may be absent (nil)
+#+end_src
+**** TODO =account_merge=
+**** DONE =answer=
+#+begin_src emacs-lisp
+  (defstruct stack-answer
+    answer-id
+    body
+    comments
+    community-owned-date
+    creation-date
+    down-vote-count
+    is-accepted
+    last-activity-date
+    last-edit-date
+    link
+    locked-date
+    owner
+    question-id
+    score
+    tags
+    title
+    up-vote-count)
+#+end_src
+**** DONE =badge=
+#+begin_src emacs-lisp
+  (defstruct stack-badge
+    award-count
+    badge-id
+    badge-type ; one of 'named or 'tag-based
+    description
+    link
+    name
+    rank
+    user)
+#+end_src
+**** DONE =badge_count=
+#+begin_src emacs-lisp
+  (defstruct stack-badge-count
+    bronze
+    gold
+    silver)
+#+end_src
+**** DONE =comment=
+#+begin_src emacs-lisp
+  (defstruct stack-comment
+    body
+    body-markdown
+    comment-id
+    creation-date
+    edited
+    link
+    owner ; shallow-user, may be absent (nil)
+    post-id
+    post-type ; one of 'question or 'answer
+    reply-to-user ; shallow-user, may be absent (nil)
+    score)
+#+end_src
+**** TODO =error=
+**** TODO =event=
+**** TODO =filter=
+**** TODO =inbox_item=
+**** TODO =info=
+**** TODO =migration_info=
+**** DONE =network_user=
+#+begin_src emacs-lisp
+  (defstruct network-user
+    account-id
+    answer-count
+    badge-counts ; badge-count object
+    creation-date
+    last-access-date
+    question-count
+    reputation
+    site-name
+    site-url
+    user-id
+    user-type ; one of 'unregistered, 'registered, 'moderator, or 'does-not-exist
+  )
+#+end_src
+**** TODO =notice=
+**** TODO =notification=
+**** TODO =related_site=
+**** TODO =post=
+**** TODO =priviledge=
+**** TODO =question=
+**** TODO =question_timeline=
+**** TODO =reputation=
+**** TODO =reputation_history=
+**** TODO =reputation_timeline=
+**** TODO =revision=
+**** DONE =shallow_user=
+#+begin_src emacs-lisp
+  (defstruct stack-shallow-user
+    accept-rate
+    display-name
+    link
+    profile-image
+    reputation
+    user-ide
+    user-type ; one of 'unregistered, 'registered, 'moderator, or 'does-not-exist
+  )
+#+end_src
+**** DONE =site=
+#+begin_src emacs-lisp
+  (defstruct stack-site
+    aliases ; may be absent (nil)
+    api-site-parameter
+    audience
+    closed-beta-date ; may be absent (nil)
+    favicon-url
+    high-resolution-icon-url ; may be absent (nil)
+    icon-url
+    launch-date
+    logo-url
+    markdown-extensions ; may be absent (nil)
+    name
+    open-beta-date ; may be absent (nil)
+    related-sites ; may be absent (nil)
+    site-state ; one of 'normal, 'closed-beta, 'open-beta, or 'linked-meta
+    site-type ; one of 'main-site or 'meta-site
+    site-url
+    styling ; separate object
+    twitter-account ; may be absent (nil)
+  )
+#+end_src
+**** DONE =styling=
+I'm not certain that this will be useful, but it's in the API.  Full
+support!
+#+begin_src emacs-lisp
+  (defstruct stack-stlying
+    link-color
+    tag-forground-color
+    tag-background-color)
+#+end_src
+**** TODO =suggested_edit=
+**** TODO =tag=
+**** TODO =tag_score=
+**** TODO =tag_synonym=
+**** TODO =tag_wiki=
+**** TODO =top_tag=
+**** DONE =user=
+#+begin_src emacs-lisp
+  (defstruct stack-user
+    about-me
+    accept-rate
+    account-id
+    age
+    answer-count
+    badge-counts ; badge-count object
+    creation-date
+    display-name
+    down-vote-count
+    is-employee
+    last-access-date
+    last-modified-date
+    link
+    location
+    profile-image
+    question-count
+    reputation
+    reputation-change-day
+    reputation-change-month
+    reputation-change-quarter
+    reputation-change-week
+    reputation-change-year
+    timed-penalty-date
+    up-vote-count
+    user-id
+    user-type
+    view-count
+    website-url)
+#+end_src
+**** TODO =user_timeline=
+**** TODO =write_permission=
