@@ -3,25 +3,12 @@
 #+Date: [2013-02-28 Thu]
 
 # This line crashes Emacs.  Remove it for successful export.
-#+INFOJS_OPT: view:info
+#+INFOJS_OPT: view:info toc:nil
 
 This document is largely incomplete.  All information is more than
 subject to change.  As Github's =org-mode= parsing is currently
 broken, it is advised that you view this document locally.
 
-#+name: relativize-tangle-references
-#+begin_src emacs-lisp
-  (let ((curdir (replace-regexp-in-string
-                 (expand-file-name "~/") "~/"
-                 (file-name-directory
-                  (or load-file-name buffer-file-name)))))
-    (replace-regexp (concat ":tangle \"" curdir "\([A-z-+/.]+\)" "\"") "\1")
-    (message curdir))
-#+end_src
-
-* TODO implement noweb-style references
-to control the order of entanglement.  An example of how to do so has
-been worked out under [[id:D365DE92-82B6-4754-98EA-26E28F1D8916][Installing]].
 * Installing
 :PROPERTIES:
 :ID: D365DE92-82B6-4754-98EA-26E28F1D8916
@@ -51,14 +38,27 @@ What we're basically going to do is this:
 #+name: $install
 #+begin_src emacs-lisp :noweb strip-export :results output
   (defun $d (m) (message (princ m)) (terpri))
-  <<$install-tangle-buffer>>
-  <<$install-move-to-load-path>>
+  <<relativize-tangle-references>>
+  <<install-tangle-buffer>>
+  <<install-move-to-load-path>>
   ;(require 'stack-mode)
 #+end_src
 
 oh shit
 
-#+name: $install-tangle-buffer
+#+name: relativize-tangle-references
+#+begin_src emacs-lisp
+  (let ((curdir (replace-regexp-in-string
+                 (expand-file-name "~/") "~/"
+                 (file-name-directory
+                  (or load-file-name buffer-file-name)))))
+    (replace-regexp (concat ":tangle \"" curdir "\([A-z-+/.]+\)" "\"") "\1")
+    (message curdir))
+#+end_src
+
+yeah shit
+
+#+name: install-tangle-buffer
 #+begin_src emacs-lisp
   ($d "Tangling stack-mode files...")
   (org-babel-tangle)
@@ -67,14 +67,14 @@ oh shit
 
 i'm dumb
 
-#+name: $install-move-to-load-path
+#+name: install-move-to-load-path
 #+begin_src emacs-lisp
   (message "Moving source files to load-path...")
 #+end_src
 
 really dumb
 
-#+name: $install-move-to-load-path
+#+name: install-move-to-load-path
 #+begin_src emacs-lisp
   (message "More moving...")
 #+end_src
@@ -105,10 +105,10 @@ Available Features:
 - Write methods 
 
 (yeah, this needs to be expanded.)
-** COMMENT
+** COMMENT Disclaimer
 This is meant more as a reference for when I am (or another user is)
 not online.  This is not official documentation, although I hope it is
-accurate up to [2013-02-28 Thu 17:00].
+accurate up to [2013-03-02 Sat 17:00].
 * Implementation
 ** Conventions and Terminology
 *** Code Conventions
@@ -119,9 +119,9 @@ accurate up to [2013-02-28 Thu 17:00].
   further prefixed with `do-` as to flag its impact.
 
 - Functions with no arguments will effect its lack thereof with =()=,
-  not =nil=.  (While =()= is /precisely/ the same as =nil= in Lisp
-  (and more specifically, Emacs Lisp), it is convention do this.
-  Failure to follow this convention may needlessly confuse potential
+  not =nil=.  While =()= is /precisely/ the same as =nil= in Lisp (and
+  more specifically, Emacs Lisp), it is convention do this.  Failure
+  to follow this convention may needlessly confuse potential
   contributors.
 
 *** Document conventions
@@ -148,8 +148,8 @@ programming, these functions are far better documented in Emacs' own
 use =C-h f= or =C-c v= (for functions or variables, respectively) to
 find out more.  (Hint: it even works in this very document!)
 
-- a-list :: a list of conses, usually pairing a symbol with a
-            description or action
+- a-list :: Association list.  A list of conses, usually pairing a
+            symbol with a description or action.
 
 ** Stack Mode (Entry Point): =stack-mode=
 Stack mode is /the/ major mode.  What do I mean by this?  Stack mode
@@ -162,7 +162,7 @@ framework upon which the rest of the package is built, and makes sure
 all tools are available.
 
 #+name: build-stack-mode
-#+begin_src emacs-lisp :noweb yes :tangle elisp/stack-mode.el
+#+begin_src emacs-lisp :noweb strip-export :tangle elisp/stack-mode.el
   ;; stack-mode.el starts here
   
   <<stack-require-dependencies>>
@@ -329,10 +329,6 @@ hook is automatically run or not per =special-mode=. (TODO)
 #+end_src
 
 *** Default Keymap
-- Note taken on [2013-02-28 Thu 14:13] \\
-  Issues with this are in the process of being [[http://stackoverflow.com/questions/15124824/][resolved]].  Currently,
-  keybindings do not act as expected, e.g. pressing =n= will not call
-  =stack-network-next-site=.
 
 - n :: next site
 - p :: previous site
@@ -340,6 +336,13 @@ hook is automatically run or not per =special-mode=. (TODO)
 - u :: profile summary (stack-profile-mode ?)
 - C-u u :: profile summary for user
 - i :: goto [[*Inbox%20Mode:%20%3Dstack-inbox-mode%3D][Inbox Mode]]
+- , :: reorder: move site up
+- . :: reorder: move site down
+- j :: jump to bookmarked sites
+- C-m :: (RET)
+- o ::  enter site into [[*Question%20Browse%20Mode:%20%3Dstack-question-browse-mode%3D][Question Browse Mode]]
+- b :: toggle bookmark
+- C-i :: display site details
 
 #+name: network-keymap
 #+begin_src emacs-lisp
@@ -392,14 +395,29 @@ the heretofore undefined =-get-site-under-point= is used.  As you may
 have guessed, the purpose of this function is to obtain the 'string
 representation' of the Stack Exchange site upon which point currently
 rests.  There is as of yet no method of retrieving this dynamically,
-so a definition-style a-list is made at the very top (=stack-mode.el=)
-to facilitate easy use.
+so a definition-style a-list is made at the top level
+(=stack-mode.el=) to facilitate easy use.
+
+Use of this a-list is as a dictionary; the identification token of
+each site is paired with its full name.  For example,
+
+- tex :: TeX, LaTeX, and Friends
+- so :: StackOverflow
+
+Since each site's 'Meta-' is denoted regularly, there is no need to
+store these explicitly.
+
+- meta.tex :: TeX, LaTeX, and Friends (Meta)
+- meta.so :: StackOverflow (Meta)
+
+As you can see, these could easily be calculated from the existing
+data.
 
 #+name: stack-setup-api
 #+begin_src emacs-lisp
   (defvar stack-exchange-api-key-to-site-alist
-    ; define
-    )
+    '(("tex" . "TeX, LaTeX, and Friends")
+      ("so" . "StackOverflow")))
 #+end_src
 
 *** Conclusion
@@ -417,8 +435,6 @@ should be configurable to support this.
   Exchange Network.")
 
   (provide 'stack-network-mode)
-  
-  ;; stack-network-mode.el ends here
 #+end_src
 ** Question Browse Mode: =stack-question-browse-mode=
 - Note taken on [2013-02-27 Wed 15:28] \\
