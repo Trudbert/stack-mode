@@ -272,12 +272,16 @@ hook is automatically run or not per =special-mode=. (TODO)
 #+begin_src emacs-lisp
   (defvar stack-network-mode-hook nil)
 #+end_src
-
+** Filters used
+#+begin_src emacs-lisp
+  (setq stack-network-site-browsing-filter "!2*cjqC8qJoVJ-U9fz9DfA")
+#+end_src
 ** Default Key-map
 
 - n :: next site
 - p :: previous site
 - RET :: enter site into [[*Question%20Browse%20Mode:%20%3Dstack-question-browse-mode%3D][Question Browse Mode]]
+- M-RET :: enter site's meta
 - u :: profile summary (stack-profile-mode ?)
 - C-u u :: profile summary for user
 - i :: goto [[*Inbox%20Mode:%20%3Dstack-inbox-mode%3D][Inbox Mode]]
@@ -293,18 +297,19 @@ hook is automatically run or not per =special-mode=. (TODO)
 #+begin_src emacs-lisp
   (defvar stack-network-mode-map
     (let ((map (make-keymap)))
-      (define-key map "n"     'stack-network-next-site)
-      (define-key map "p"     'stack-network-previous-site)
-      (define-key map ","     'stack-network-move-site-up)
-      (define-key map "."     'stack-network-move-site-down)
-      (define-key map "j"     'stack-network-jump-to-bookmarks)
-      (define-key map "\C-m"  'stack-network-do-enter-site) ; ret
-      (define-key map "o"     'stack-network-do-enter-site)
-      (define-key map "u"     'stack-network-do-profile-summary)
-      (define-key map "\C-uu" 'stack-network-do-profile-summary-for-user)
-      (define-key map "i"     'stack-network-do-inbox)
-      (define-key map "b"     'stack-network-toggle-bookmark)
-      (define-key map "\C-i"  'stack-network-display-details) ; tab
+      (define-key map (kbd "n")     'stack-network-next-site)
+      (define-key map (kbd "p")     'stack-network-previous-site)
+      (define-key map (kbd ",")     'stack-network-move-site-up)
+      (define-key map (kbd ".")     'stack-network-move-site-down)
+      (define-key map (kbd "j")     'stack-network-jump-to-bookmarks)
+      (define-key map (kbd "RET")   'stack-network-do-enter-site)
+      (define-key map (kbd "M-RET") 'stack-network-do-enter-site-meta)
+      (define-key map (kbd "o")     'stack-network-do-enter-site)
+      (define-key map (kbd "u")     'stack-network-do-profile-summary)
+      (define-key map (kbd "C-u u") 'stack-network-do-profile-summary-for-user)
+      (define-key map (kbd "i")     'stack-network-do-inbox)
+      (define-key map (kbd "b")     'stack-network-toggle-bookmark)
+      (define-key map (kbd "TAB")   'stack-network-display-details)
       map)
     "Keymap for Stack Exchange: Network Browser major mode")
 #+end_src
