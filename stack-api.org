@@ -1,11 +1,26 @@
 #+Title: Stack Exchange API
 
 #+PROPERTY result silent
+#+PROPERTY noweb strip-export
 
 This is meant more as a reference for when I am (or another user is)
 not online.  This is not official documentation, although I hope it is
 accurate up to [2013-03-02 Sat 17:00].
 
+Hopefully, the org exporter to texinfo will be up and running before
+this is.
+
+* Acknowledgments
+Thanks to everyone who made this possible, especially the community
+for which this package is intended.
+
+** Users
+- tkf, the creator and maintainer of the =request= package, without
+  which this package would still be a pipe dream.
+** Questions
+Below are a list of questions I've made while creating this package.
+- [[http://stackoverflow.com/questions/15118304][Making JSON requests within Emacs]]
+- [[http://stackoverflow.com/questions/15190684][JSON requests within Emacs, Phase 2: Getting a collection of items]]
 * Supporting Utilitarian Functions
 #+begin_src emacs-lisp
   (defvar stack-time-format-string
@@ -28,17 +43,70 @@ Available Features:
 - Write methods 
 
 (yeah, this needs to be expanded.)
-
 ** Supported Functions
 This is a list of functions in Stack Mode that are supported by this
 version of the API.  
 ** Emacs Lisp Implementation
 In order to lubricate the interface between Emacs and Stack Exchange's
 JSON-based API.
+
+In order to minimize the number of calls we make to the API, we set up
+a number of cells in which to store data.
+
+- stack-sites :: stores information about all sites in general
+- stack-questions :: stores information about each site's questions as
+     retrieved.  For example, if I request some of TeX's questions, it
+     will then store =(tex (((question-a) (answers)) ((question-b)
+     (answers))))=.  That is, =stack-questions= is a list of lists
+     where the first element of each list is the =api_site_parameter=
+     and it is followed by a list of question-(list of answers) pairs.
+     (This needs explicating.)
+#+begin_src emacs-lisp :noweb yes :tangle "elisp/stack-api.el"
+  ;; stack-api.el starts here
+  
+  ; Build on the shoulders of giants
+  <<require-dependencies>>
+  
+  ; Declare caches
+  <<declare-caches>>
+  
+  ; Define all structures
+  <<define-structures>>
+  
+  ; Define functions for authentication
+  <<authentication>>
+  
+  ; Define functions for read
+  <<read-methods>>
+  
+  ; Define functions for write
+  <<write-methods>>
+  
+  ;; stack-api.el ends here
+#+end_src
+*** Dependencies
+:PROPERTIES:
+:noweb-ref: require-dependencies
+:END:
+**** JSON
+#+begin_src emacs-lisp
+  (require 'json)
+#+end_src
 *** Authentication
 https://api.stackexchange.com/docs/authentication
+*** Elisp Copy
+**** =/sites=
+
 *** Objects
+:PROPERTIES:
+:noweb-ref: define-structures
+:END:
 https://api.stackexchange.com/docs?tab=type#docs
+**** TODO =site-aggregate=
+Holds all information about a site:
+- site object
+- list of question objects paired with a list of its answers
+
 **** DONE =access_token=
 #+begin_src emacs-lisp
   (defstruct stack-access-token
@@ -46,8 +114,15 @@ https://api.stackexchange.com/docs?tab=type#docs
     account-id
     expires-on-date ; may be absent (nil)
     scope ; may be absent (nil)
+    )
 #+end_src
-**** TODO =account_merge=
+**** DONE =account_merge=
+#+begin_src emacs-lisp
+  (defstruct stack-account-merge
+    merge-date
+    new-account-id
+    old-account-id)
+#+end_src
 **** DONE =answer=
 #+begin_src emacs-lisp
   (defstruct stack-answer
@@ -103,11 +178,61 @@ https://api.stackexchange.com/docs?tab=type#docs
     reply-to-user ; shallow-user, may be absent (nil)
     score)
 #+end_src
-**** TODO =error=
-**** TODO =event=
-**** TODO =filter=
-**** TODO =inbox_item=
-**** TODO =info=
+**** DONE =error=
+#+begin_src emacs-lisp
+  (defstruct stack-error
+    description
+    error-id
+    error-name)
+#+end_src
+**** DONE =event=
+#+begin_src emacs-lisp
+  (defstruct stack-event
+    creation-date
+    event-id
+    event-type
+    excerpt
+    link)
+#+end_src
+**** DONE =filter=
+#+begin_src emacs-lisp
+  (defstruct stack-filter
+    filter
+    filter-type ; one of 'safe, 'unsafe, or 'invalid
+    included-fields)
+#+end_src
+**** DONE =inbox_item=
+#+begin_src emacs-lisp
+  (defstruct stack-inbox-item
+    answer-id
+    body
+    comment-id
+    creation-date
+    is-unread
+    item-type ; 'comment 'chat-message 'new-answer 'careers-message 'careers-invitations 'meta-question 'post-notes 'moderator-message
+    link
+    question-id
+    site
+    title)
+#+end_src
+**** DONE =info=
+#+begin_src emacs-lisp
+  (defstruct stack-info
+    answers-per-minute
+    api-revision
+    badges-per-minute
+    new-active-users
+    questions-per-minute
+    site
+    total-accepted
+    total-answers
+    total-badges
+    total-comments
+    total-questions
+    total-unanswered
+    total-users
+    total-votes)
+#+end_src
 **** TODO =migration_info=
 **** DONE =network_user=
 #+begin_src emacs-lisp
@@ -126,8 +251,24 @@ https://api.stackexchange.com/docs?tab=type#docs
   )
 #+end_src
 **** TODO =notice=
-**** TODO =notification=
-**** TODO =related_site=
+**** DONE =notification=
+#+begin_src emacs-lisp
+  (defstruct stack-notification
+    body
+    creation-date
+    is-unread
+    notification-type
+    post-id
+    site)
+#+end_src
+**** DONE =related_site=
+#+begin_src emacs-lisp
+  (defstruct stack-related-site
+    api-site-parameter
+    name
+    relation
+    site-url)
+#+end_src
 **** TODO =post=
 **** TODO =priviledge=
 **** TODO =question=

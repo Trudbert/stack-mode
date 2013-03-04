@@ -1,3 +1,5 @@
+-*- lisp-interaction -*-
+
 (require 'request)
 (require 'json)
 
