@@ -29,10 +29,11 @@ Below are a list of questions I've made while creating this package.
 
 #+begin_src emacs-lisp
   (defun stack-make-time (epoch-time)
-    (format-time-string stack-time-format-string))
+    (format-time-string stack-time-format-string (seconds-to-time epoch-time)))
 #+end_src
 
 * Version 2.1
+- [[https://api.stackexchange.com/docs][SX.API v2.1]]
 Version 2.1 of the Stack Exchange API allows for read-only access (and
 write-access for comments!) to the Stack Exchange network.
 
@@ -50,17 +51,32 @@ version of the API.
 In order to lubricate the interface between Emacs and Stack Exchange's
 JSON-based API.
 
+
+This makes it more convenient to form methods.
+#+begin_src emacs-lisp :tangle "elisp/stack-api.el"
+  (defun stack-api/method (method)
+    (concat "https://api.stackexchange.com/" method))
+#+end_src
+*** Cache
 In order to minimize the number of calls we make to the API, we set up
 a number of cells in which to store data.
 
-- stack-sites :: stores information about all sites in general
-- stack-questions :: stores information about each site's questions as
-     retrieved.  For example, if I request some of TeX's questions, it
-     will then store =(tex (((question-a) (answers)) ((question-b)
-     (answers))))=.  That is, =stack-questions= is a list of lists
-     where the first element of each list is the =api_site_parameter=
-     and it is followed by a list of question-(list of answers) pairs.
-     (This needs explicating.)
+- sites :: stores information about all sites in general
+- questions :: stores information about each site's questions as
+               retrieved.  For example, if I request some of TeX's
+               questions, it will then store =(tex (((question-a)
+               (answers)) ((question-b) (answers))))=.  That is,
+               =stack-questions= is a list of lists where the first
+               element of each list is the =api_site_parameter= and it
+               is followed by a list of question-(list of answers)
+               pairs.  (This needs explicating.)
+
+#+begin_src emacs-lisp :tangle "elisp/stack-api.el"
+  (defvar stack-api/cache nil
+    "A sparse cache of information for the sites on the Stack
+  Exchange Network")
+#+end_src
+
 #+begin_src emacs-lisp :noweb yes :tangle "elisp/stack-api.el"
   ;; stack-api.el starts here
   
@@ -361,3 +377,8 @@ support!
 #+end_src
 **** TODO =user_timeline=
 **** TODO =write_permission=
+**** Finding out if a Site is Meta
+#+begin_src emacs-lisp
+  (defun stack-api/site-is-meta (site)
+    (string= "meta_site" (assoc-default 'site_type site)))
+#+end_src

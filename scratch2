@@ -6,70 +6,71 @@
 (defvar stack-time-format-string
   "[%Y-%m-%d %a %H:%M:%S]")
 (defun stack-make-time (epoch-time)
-  (format-time-string stack-time-format-string epoch-time))
+  (format-time-string stack-time-format-string (seconds-to-time epoch-time)))
 
-(request
- "https://api.stackexchange.com/2.1/questions"
- :params '((order . "desc")
-           (sort  . "activity")
-           (site  . "ell"))
- :parser 'json-read
- :success (function*
-           (lambda (&key data &allow-other-keys)
-             (let* ((item (elt (assoc-default 'items data) 0))
-                    (title (assoc-default 'title item))
-                    (tags (assoc-default 'tags item)))
-               (insert (format "\nTitle:\t%s\nTags:\t%S" title tags))))))
+(setq stack-api-sites nil)
 
-(setq *stack-site-info-alist* nil)
-
-(request
- "https://api.stackexchange.com/2.1/sites"
- :parser 'json-read
- :success (function*
-	   (lambda (&key data &allow-other-keys)
-	     (let* ((items    (assoc-default 'items data))
-		    (names    (mapcar (lambda (item) (assoc-default 'name               item)) items))
-		    (launches (mapcar (lambda (item) (assoc-default 'launch_date        item)) items))
-		    (tokens   (mapcar (lambda (item) (assoc-default 'api_site_parameter item)) items)))
-	       (progn
-		 (message "%S" items)
-		 (mapcar* (lambda (name launch token)
-			    (if launch (message "token: %s\n\tname:\t%s\n\tlaunch:\t%s"
-						token
-						name
-						(format-time-string "%Y-%m-%d %T UTC"
-								    (seconds-to-time launch)))))
-			  names
-			  launches
-			  tokens))))))
-
-(setq *stack-sites* nil)
-
-(defun stack-api-sites ()
+(defun stack-api-find-all-sites ()
   (request
    "https://api.stackexchange.com/2.1/sites"
    :parser 'json-read
    :success (function*
 	     (lambda (&key data &allow-other-keys)
-	      (setq *stack-sites* (assoc-default 'items data))))))
+	      (setq stack-api/cache/sites (assoc-default 'items data))))))
 
-(stack-api-sites)
+(stack-api-find-all-sites)
 
-;((site_state . "normal") (aliases . ["http://www.stackoverflow.com"]) (icon_url . "http://cdn.sstatic.net/stackoverflow/img/apple-touch-icon.png") (audience . "professional and enthusiast programmers") (site_url . "http://stackoverflow.com") (api_site_parameter . "stackoverflow") (logo_url . "http://cdn.sstatic.net/stackoverflow/img/logo.png") (name . "Stack Overflow") (site_type . "main_site"))
-
-
-(message "%S" (elt *stack-sites* 0))
+(message "%S" (elt stack-api/cache/sites 0))
 
 (mapcar (lambda (site)
-	  (message "Name: %s" (assoc-default 'name site))
-	  (message "\tHiRes Icon URL:      %s" (assoc-default 'high_resolution_icon_url site))
-	  (message "\tMarkdown Extensions: %S" (assoc-default 'markdown_extensions      site))
-	  (message "\tRelated sites:       %S" (assoc-default 'related_sites            site))
-	  (message "\tFavicon URL:         %s" (assoc-default 'favicon_url              site))
-	  (message "\tLaunch Date:         %s" (assoc-default 'launch_date              site))
-	  (message "\tStyling:             %S" (assoc-default 'styling                  site))
+	  (message "Name: %s"                  (assoc-default 'name site))
+;	  (message "\tHiRes Icon URL:      %s" (assoc-default 'high_resolution_icon_url site))
+;	  (message "\tMarkdown Extensions: %S" (assoc-default 'markdown_extensions      site))
+;	  (message "\tRelated sites:       %S" (assoc-default 'related_sites            site))
+;	  (message "\tFavicon URL:         %s" (assoc-default 'favicon_url              site))
+;	  (if (assoc-default 'launch_date site) (message "\tLaunch Date:         %s" (stack-make-time (assoc-default 'launch_date site))))
+;	  (message "\tStyling:             %S" (assoc-default 'styling                  site))
 	  (message "\tSite State:          %s" (assoc-default 'site_state               site))
-	  (message "\tAliases:             %S" (assoc-default 'aliases                  site))
-	  (message "\tIcon URL:            %s" (assoc-default 'icon_url                 site)))
-	*stack-sites*)
+;	  (message "\tAliases:             %S" (assoc-default 'aliases                  site))
+;	  (message "\tIcon URL:            %s" (assoc-default 'icon_url                 site))
+;	  (message "\tAudience:            %s" (assoc-default 'audience                 site))
+;	  (message "\tSite URL:            %s" (assoc-default 'site_url                 site))
+	  (message "\tAPI Site Parameter:  %s" (assoc-default 'api_site_parameter       site))
+;	  (message "\tLogo URL:            %s" (assoc-default 'logo_url                 site))
+;	  (message "\tSite Type:           %s" (assoc-default 'site_type                site)))
+        )stack-api/cache/sites)
+
+(mapcar (lambda (site)
+	  (if (not (string= "linked_meta" (assoc-default 'site_state site)))
+	      (message "Site: %s (%s)"
+		       (assoc-default 'name site)
+		       (assoc-default 'api_site_parameter site))))
+	  stack-api/cache/sites)
+
+(defun stack-api/method (method)
+  (concat "https://api.stackexchange.com/" method))
+
+
+(defun stack-api/site-is-meta (site)
+  (string= "meta_site" (assoc-default 'site_type site)))
+
+
+
+(defun stack-network/write-out-site (site)
+  (with-current-buffer (get-buffer-create "*SX Network*")
+    (insert (format "%-40s %29s\n"
+		    (assoc-default 'name site)
+		    (assoc-default 'api_site_parameter site)))))
+
+(defun stack-network/write-out-sites ()
+  (if (not stack-api/cache/sites)
+      (stack-api/request-site-overview))
+  (mapcar (lambda (site) 
+	    (if (not (stack-api/site-is-meta site))
+		(stack-network/write-out-site site)))
+	  stack-api/cache/sites))
+
+(stack-network-write-out-sites)
+
+(with-current-buffer (get-buffer-create "*SX Network*")
+  (insert "Hello World"))

@@ -8,8 +8,8 @@ the Stack Exchange API.
 
 For a full list of planned features and explanations of the
 implementation (literate programming) thus far, see [[file:stack-mode.org][stack-mode.org]] (if
-you're browsing this file via =org-mode=) or [[https://github.com/vermiculus/stack-mode/blob/master/stack-mode.org][the appropriate file
-above]] if you're browsing on Github.
+you're visiting this file in Emacs under via =org-mode=) or the
+[[https://github.com/vermiculus/stack-mode/blob/master/stack-mode.org][appropriate file above]] if you're browsing on Github.
 
 Please note that Github does not currently ([2013-02-28 Thu 14:35])
 support all embedded source blocks in your web-browser.  I am looking
