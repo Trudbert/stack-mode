@@ -18,7 +18,6 @@
 This document is largely incomplete.  All information is more than
 subject to change.  As GitHub's =org-mode= parsing is currently
 broken, it is advised that you view this document locally.
-
 * Goals
 ** Provide a full-featured, Emacs-based Stack Exchange experience.
 This package must take reasonably full advantage of the Stack Exchange
@@ -28,6 +27,8 @@ current Stack Exchange API at the time of writing (2.1, [2013-03-02]).
 They are based upon the foreseeable interactions a user will have with
 any given Stack Exchange site, and are included to ensure that the
 interface is consistent.
+*** Features
+- ability to save draft solutions (in emacs directory)
 ** Provide offline access to user-specified questions and answers.
 There must be no requirement to be on a network in order to use this
 package to its fullest.
