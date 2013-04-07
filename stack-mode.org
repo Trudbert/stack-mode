@@ -15,9 +15,24 @@
 # so).
 #+PROPERTY noweb strip-export
 
+* About This Document
 This document is largely incomplete.  All information is more than
 subject to change.  As GitHub's =org-mode= parsing is currently
 broken, it is advised that you view this document locally.
+
+You've probably noticed that this document is rather large.  The users
+of this package are more than likely to make their own customizations
+(because come on---you're using Emacs and you're on some Stack site).
+Thus, literate programming is the best methodology that I could see to
+create this work.  The Org-mode contributors are hard at work refining
+the TEXI exporter; by the time Stack-mode is finished, the exporter
+should be as well.  Single-sourcing at its finest.
+
+With this comes a minor something of interest: /how do I get my
+files?/ Right now, you'll need to create a directory (as a sibling to
+this file) called `elisp`.  Once you have done that, run =M-x
+org-babel-tangle= on this file; the necessary ELisp files will be
+generated under =elisp/=.
 * Goals
 ** Provide a full-featured, Emacs-based Stack Exchange experience.
 This package must take reasonably full advantage of the Stack Exchange
@@ -27,8 +42,16 @@ current Stack Exchange API at the time of writing (2.1, [2013-03-02]).
 They are based upon the foreseeable interactions a user will have with
 any given Stack Exchange site, and are included to ensure that the
 interface is consistent.
-*** Features
-- ability to save draft solutions (in emacs directory)
+*** Main Features
+- Read
+  - browse the stack exchange network
+  - browse questions on a specific stack exchange site
+  - save questions for offline access
+- Write 
+  - comment on questions and answers
+- Miscellaneous
+  - create solutions for questions (can't post as of API 2.1)
+  - save draft solutions (in emacs directory)
 ** Provide offline access to user-specified questions and answers.
 There must be no requirement to be on a network in order to use this
 package to its fullest.
@@ -255,10 +278,10 @@ Here is the planned interface:
      1 unread notification
   
   Favorites.............................................................
-    TeX, LaTeX, and Friends                                       tex.sx
+    TeX, LaTeX, and Friends                                          tex
     StackOverflow                                          stackoverflow
     StackApps                                                  stackapps
-    Mathematics                                                  math.sx
+    Mathematics                                                     math
   
   Other Sites...........................................................
     <all other sites>
