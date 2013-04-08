@@ -17,6 +17,18 @@ accurate up to [2013-03-02 Sat 17:00].
     (format-time-string stack-time-format-string))
 #+end_src
 
+#+BEGIN_SRC emacs-lisp
+    (defun alist-to-json (alist)
+    (apply 'concat
+           (mapcar (lambda (kv)
+                     (format "%s=%s&" (car kv)
+                             (if (stringp (cdr kv)) 
+                                 (cdr kv)
+                               (number-to-string (cdr kv)))
+                             ))
+                   alist)))
+#+END_SRC
+
 * Version 2.1
 Version 2.1 of the Stack Exchange API allows for read-only access (and
 write-access for comments!) to the Stack Exchange network.
@@ -29,6 +41,11 @@ Available Features:
 
 (yeah, this needs to be expanded.)
 
+We shall define the API version:
+#+BEGIN_SRC emacs-lisp
+  (defvar stack-api-root "https://api.stackexchange.com/2.1/")
+#+END_SRC
+
 ** Supported Functions
 This is a list of functions in Stack Mode that are supported by this
 version of the API.  
@@ -37,8 +54,36 @@ In order to lubricate the interface between Emacs and Stack Exchange's
 JSON-based API.
 *** Authentication
 https://api.stackexchange.com/docs/authentication
+*** Information Retrieval
+The most basic use of the API is to retrieve information.  With the
+StackExchange API, such requests are answered with JSON, so we shall
+require both the JSON package and the REQUEST package, available via
+your favorite package repository.
+
+#+BEGIN_SRC emacs-lisp
+  (require 'json)
+  (require 'request)
+#+END_SRC
+
+Now, we shall make a generalized 'requesting' function tailored to the
+Stack Exchange API.  In order to
+#+BEGIN_SRC emacs-lisp
+    (defun stack-api-request (call keys-alist)
+      "Makes the specified `CALL` to the Stack Exchange API with the
+      key-value pairs given `KEYS-ALIST`.  For example,
+    
+      (stack-api-request \"sites\" '(:page 2 :page_size 25))"
+      (let* ((base-call (concat stack-api-root call "?"))
+             (options (alist-to-json keys-alist))
+             (full-call (concat base-call options)))
+        (request
+         (concat stack-api-root call)
+         :params options
+         :parser 'json-read
+         :sync t)))
+#+END_SRC
 *** Objects
-https://api.stackexchange.com/docs?tab=type#docs
+    https://api.stackexchange.com/docs?tab=type#docs
 **** DONE =access_token=
 #+begin_src emacs-lisp
   (defstruct stack-access-token

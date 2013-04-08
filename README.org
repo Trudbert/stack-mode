@@ -45,7 +45,7 @@ snippets without confirmation.
 #+call: $install()
 
 (This document does not yet add the necessary files to the
-=load-path=.  Please do so manually.
+=load-path=.  Please do so manually.)
 
 What we're basically going to do is this:
 #+name: $install
@@ -104,3 +104,6 @@ anyone would fancy a crack at it.
 - [[file:resources/emacs.svg][Emacs icon]]
 - [[file:resources/stackexchange.svg][Stack Exchange icon]]
 
+* Credits
+Special thanks to
+- [[http://stackoverflow.com/users/727827][@tkf]] on StackOverflow
