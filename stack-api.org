@@ -1,24 +1,39 @@
 #+Title: Stack Exchange API
 
-#+PROPERTY result silent
+#+PROPERTY: result silent
+#+PROPERTY: tangle "./elisp/stack-api.el"
 
 This is meant more as a reference for when I am (or another user is)
 not online.  This is not official documentation, although I hope it is
-accurate up to [2013-03-02 Sat 17:00].
+accurate up to [2013-04-08 Mon 20:55].
 
 * Supporting Utilitarian Functions
+This variable declares the format off a time string.  The format has
+been designed to be compatible with Org-mode time-stamps, for whatever
+purpose that may come in handy for.
 #+begin_src emacs-lisp
   (defvar stack-time-format-string
     "[%Y-%m-%d %a %H:%M:%S]")
 #+end_src
 
+This function takes the time `EPOCH-TIME` and formats it into a string
+according to `STACK-FORMAT-TIME-STRING`.
 #+begin_src emacs-lisp
   (defun stack-make-time (epoch-time)
     (format-time-string stack-time-format-string))
 #+end_src
 
+Converts the key-value pairs of an association list into the
+equivalent JSON format.
+#+BEGIN_EXAMPLE
+\* (alist-to-json '(("page" 2) ("site" "tex")))
+"page=2&site=tex&"
+#+END_EXAMPLE
+
 #+BEGIN_SRC emacs-lisp
-    (defun alist-to-json (alist)
+  (defun alist-to-json (alist)
+    "Converts the key-value pairs of `ALIST` into a JSON-friendly
+  string: \"key1=value1&key2=value2&\"."
     (apply 'concat
            (mapcar (lambda (kv)
                      (format "%s=%s&" (car kv)
@@ -43,7 +58,7 @@ Available Features:
 
 We shall define the API version:
 #+BEGIN_SRC emacs-lisp
-  (defvar stack-api-root "https://api.stackexchange.com/2.1/")
+  (defvar stack-api-root "api.stackexchange.com/2.1/")
 #+END_SRC
 
 ** Supported Functions
@@ -52,9 +67,9 @@ version of the API.
 ** Emacs Lisp Implementation
 In order to lubricate the interface between Emacs and Stack Exchange's
 JSON-based API.
-*** Authentication
+*** TODO Authentication
 https://api.stackexchange.com/docs/authentication
-*** Information Retrieval
+*** TODO Information Retrieval
 The most basic use of the API is to retrieve information.  With the
 StackExchange API, such requests are answered with JSON, so we shall
 require both the JSON package and the REQUEST package, available via
@@ -66,19 +81,29 @@ your favorite package repository.
 #+END_SRC
 
 Now, we shall make a generalized 'requesting' function tailored to the
-Stack Exchange API.  In order to
+Stack Exchange API.  In order to ease the requests that =stack-mode=
+will make, this function takes a single =call= (such as "sites" or
+"sites/info") and a list of parameters.  Both arguments are mandatory
+at the moment.
+
 #+BEGIN_SRC emacs-lisp
-    (defun stack-api-request (call keys-alist)
-      "Makes the specified `CALL` to the Stack Exchange API with the
-      key-value pairs given `KEYS-ALIST`.  For example,
-    
-      (stack-api-request \"sites\" '(:page 2 :page_size 25))"
-      (let* ((base-call (concat stack-api-root call "?"))
-             (options (alist-to-json keys-alist))
-             (full-call (concat base-call options)))
-        (request
-         (concat stack-api-root call)
-         :params options
-         :parser 'json-read
-         :sync t)))
+  (defun stack-api-request (call keys-alist)
+    "Makes the specified `CALL` to the Stack Exchange API with the
+    key-value pairs given `KEYS-ALIST`.  For example,
+  
+    (stack-api-request \"sites\" '((page . 2) (page_size . 25)))"
+  
+    (let* ((base-call (concat stack-api-root call "?"))
+           (options (alist-to-json keys-alist)))
+      (json-read-from-string
+       (shell-command-to-string
+        (concat "curl -s --compressed" base-call options)))))
+  ;    (request base-call
+  ;     :params options
+  ;     :parser 'json-read
+  ;     :sync t)))
 #+END_SRC
+
+#+RESULTS:
+: stack-api-request
+
