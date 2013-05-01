@@ -317,11 +317,12 @@ by two question marks:
 Note, however, that favorites are still here.
 
 The width is customizable.
-#+BEGIN_SRC elisp
+#+name: network-customization
+#+begin_src elisp
   (defvar stack-network-site-line-width fill-column
     "The absolute width of each site as listed in Stack Network
     Mode.")
-#+END_SRC
+#+end_src
 
 *** Official Requirements
 - The interface must represent logged-in status by representing the
@@ -356,17 +357,18 @@ Now that we have the data, it's time to build our screen.
 
 **** The Site List
 This one is a little tricky.  In C, one would simply write
-#+BEGIN_SRC c :tangle no
+#+begin_src c :tangle no
   printf("%s%*s",
          name,
          stack-network-site-fill-width,
          api-key);
-#+END_SRC
+#+end_src
 to create the desired effect.  Unfortunately, =format= isn't this
 intelligent.  So, the format string is created that has the correct
 width, and then this format string is used in the 'real' format
 string for return.
-#+BEGIN_SRC elisp
+#+name: network-define-mode-functions
+#+begin_src elisp
   (defun stack-network--make-site-string (name api-key)
     "Creates a string from `NAME` and `API-KEY` that exactly fills
     the width given by `STACK-NETWORK-SITE-FILL-WIDTH`.  This
@@ -374,7 +376,7 @@ string for return.
     (format (format "%%s%%%ds" 
                     (- stack-network-site-line-width (length name)))
             name api-key))
-#+END_SRC
+#+end_src
 ***** Favorites
 
 ***** Others
@@ -459,7 +461,7 @@ rests.
 =stack-save= gets the ID of the question under point and stores
 it as an Org node:
 
-#+begin_src org
+#+begin_src org :tangle no
   ,* tex.stackexchange.com
   ,  :PROPERTIES:
   ,  :STACK_API_TOKEN: tex
@@ -551,7 +553,7 @@ should be configurable to support this.
 #+begin_src emacs-lisp
   (define-derived-mode stack-network-mode
     special-mode
-    "SX-Network"
+    "SE/NW"
     "Major mode for navigating and organizing sites on the Stack
   Exchange Network.")
 
