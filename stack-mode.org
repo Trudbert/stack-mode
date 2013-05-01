@@ -33,7 +33,7 @@ files?/ Right now, you'll need to create a directory (as a sibling to
 this file) called `elisp`.  Once you have done that, run =M-x
 org-babel-tangle= on this file; the necessary ELisp files will be
 generated under =elisp/=.
-* Goals
+* TODO Goals
 ** Provide a full-featured, Emacs-based Stack Exchange experience.
 This package must take reasonably full advantage of the Stack Exchange
 API to the extent supported by Stack Exchange.  Note there are many
@@ -61,7 +61,7 @@ This package must make every effort to explain its methodologies and
 algorithms.  It must explain its variables and hooks, and how to
 customize them in a way that is useful to Stack Mode in its normal
 execution.
-* Conventions and Terminology
+* TODO Conventions and Terminology
 ** Code Conventions
 - All functions will have `stack-network-` / `stack-comment-` /
   etc. (as appropriate) as a prefix.
@@ -121,7 +121,10 @@ find out more.  (Hint: it even works in this very document!)
 ** Examples
 Example questions and answers are taken from [[http://tex.stackexchange.com/questions/83970/auctex-preview-latex-and-ghostscript-emacs][one of my own questions]]
 retrieved [2013-02-27 Wed 15:36] unless obviously staged.
-* Stack Mode (Entry Point): =stack-mode=
+* TODO Stack Mode (Entry Point): =stack-mode=
+  :PROPERTIES:
+  :tangle:   ./elisp/stack-mode.el
+  :END:
 Stack mode is /the/ major mode.  What do I mean by this?  Stack mode
 is the entry point of the whole package.  There is no other way to
 obtain the full, original functionality of the package without first
@@ -236,16 +239,16 @@ the mode line according to the customizable variable (=nil= or =t=)
 activated) when use exceeds =stack-display-API-color-threshold= (a
 float in $[0, 1]$, where $0$ never changes the color).
 
-* Network Mode: =stack-network-mode=
-:PROPERTIES:
-:ID: A3928908-C7A4-43C5-A31A-E3145A134664
-:END:
+* TODO Network Mode: =stack-network-mode=
+  :PROPERTIES:
+  :tangle:   ./elisp/stack-network.el
+  :END:
 - Note taken on [2013-03-01 Fri 16:04] \\
   For the purposes of testing, =(require 'stack-mode)= has been
   commented out to avoid =load-path= issues.  (I'm really lazy.)  In
   addition, a debugging function has been added to facilitate messaging
   that would be useful to track down bugs.
-
+** Overview
 Network mode is a major mode that defines functions and binds keys
 useful for browsing and organizing sites in the Stack Exchange
 network.
@@ -261,7 +264,7 @@ network.
 
 ;; stack-network-mode.el ends here
 #+end_src
-
+** Dependencies
 Since it is an integrated part of =stack-mode= and dispatches to
 several sibling modes, it is imperative that =stack-mode= (and all of
 its child modes) be available upon entering =stack-network-mode=.
@@ -270,11 +273,13 @@ its child modes) be available upon entering =stack-network-mode=.
   ;(require 'stack-mode)
 #+end_src
 
+** Interface
 Here is the planned interface:
 #+begin_src text :tangle elisp/stack-network-mode.interface
   -*- stack-network -*-
+  Logged in as Sean
   
-     4 unread inbox items
+    14 unread inbox items
      1 unread notification
   
   Favorites.............................................................
@@ -286,10 +291,64 @@ Here is the planned interface:
   Other Sites...........................................................
     <all other sites>
 #+end_src
-(While not functional, this file is intended to produce a buffer
-suitable for navigation testing.  It should be de-tangled before
-release.)
 
+But what if the user is not logged in?  In this case, the name is
+replaced with =Anonymous=, and the 'unread' counters are replaced
+by two question marks:
+
+#+begin_src text :tangle elisp/stack-network-mode-anon.interface
+  -*- stack-network -*-
+  Logged in as Anonymous
+  
+    ?? unread inbox items
+    ?? unread notifications
+  
+  Favorites.............................................................
+    TeX, LaTeX, and Friends                                          tex
+    StackOverflow                                          stackoverflow
+    StackApps                                                  stackapps
+    Mathematics                                                     math
+  
+  Other Sites...........................................................
+    <all other sites>
+#+end_src
+
+Note, however, that favorites are still here.
+
+*** Official Requirements
+- The interface must represent logged-in status by representing the
+  network-wide name of the user or "Anonymous" otherwise.
+- The interface must represent the number of unread notifications and
+  inbox items (or two question marks if not logged in).
+- The interface must provide a *local* mechanism for favoriting sites.
+- Each site is listed with its left-flush official title and
+  right-flush API token.
+*** Retrieval
+The information we will need for this screen is as follows:
+
+- 
+
+**** Get Notifications and Inbox Items
+
+**** Get the List of Sites
+
+**** Prepare Favorites
+
+*** Building Strings for Output
+- customizable width
+
+**** Get Notifications and Inbox Items
+
+**** The Site List
+#+BEGIN_SRC elisp
+
+#+END_SRC
+***** Favorites
+
+***** Others
+
+*** Output to Screen
+** Customization
 A mode hook is provided for customizability.  I am not sure that this
 hook is automatically run or not per =special-mode=. (TODO)
 #+name: network-customization
@@ -496,7 +555,10 @@ should be configurable to support this.
 
   (provide 'stack-network-mode)
 #+end_src
-* Question Browse Mode: =stack-question-browse-mode=
+* TODO Question Browse Mode: =stack-question-browse-mode=
+  :PROPERTIES:
+  :tangle:   ./elisp/stack-question-browse.el
+  :END:
 This mode is buffer-read-only.
 
 Font Lock
@@ -543,7 +605,10 @@ Display statistical information on top:
  - A :: ask question ([[*Ask%20Mode:%20%3Dstack-ask-mode%3D][Ask Mode]])
  - q :: go back to [[*Network%20Mode:%20%3Dstack-network-mode%3D][Network Mode]]
  - m :: switch to meta
-* Question Detail Mode: =stack-question-detail-mode=
+* TODO Question Detail Mode: =stack-question-detail-mode=
+  :PROPERTIES:
+  :tangle:   ./elisp/stack-question-detail.el
+  :END:
 
 Outline-mode-like question voting, comment voting/flagging
 
@@ -559,7 +624,10 @@ The question and each answer are top-level nodes.
 - s :: star
 - S :: save offline as an =org= node.  (The archive file is kept in
        .emacs.d)
-* Comment Mode: =stack-comment-mode=
+* TODO Comment Mode: =stack-comment-mode=
+  :PROPERTIES:
+  :tangle:   ./elisp/stack-comment
+  :END:
 
 Minor mode for use atop markdown-mode.
 
@@ -572,11 +640,11 @@ up below in comment-mode.  Should support mentions.
 - C-c C-k :: Cancel comment.
 - TAB :: Expand username, if possible (must be after =@=) with
          preference to those nearest in the conversation
-* Ask Mode: =stack-ask-mode=
+* TODO Ask Mode: =stack-ask-mode=
 
 A minor mode atop =markdown-mode=, adding support for tagging.
 
 Ask a question.
-* Inbox Mode: =stack-inbox-mode=
+* TODO Inbox Mode: =stack-inbox-mode=
 yeah.  View notifications and stuff.
 
