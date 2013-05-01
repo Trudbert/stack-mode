@@ -423,7 +423,7 @@ hook is automatically run or not per =special-mode=. (TODO)
       map)
     "Keymap for Stack Exchange: Network Browser major mode")
 #+end_src
-
+*** TODO (re?)create interface for site details
 ** Navigation
 The primary methods of navigation =-next-site=, =-previous-site=, and
 =-enter-site=.  The first two of these three do only what makes sense:
@@ -454,37 +454,7 @@ If you look at the definition of =-do-enter-site=, you will notice that
 the heretofore undefined =-get-site-under-point= is used.  As you may
 have guessed, the purpose of this function is to obtain the 'string
 representation' of the Stack Exchange site upon which point currently
-rests.  There is as of yet no method of retrieving this dynamically,
-so a definition-style a-list is made at the top level
-(=stack-mode.el=) to facilitate easy use.
-
-Use of this a-list is as a dictionary; the identification token of
-each site is paired with its full name.  For example,
-
-- tex :: TeX, LaTeX, and Friends
-- so :: StackOverflow
-
-Since each site's 'Meta-' is denoted regularly, there is no need to
-store these explicitly.
-
-- meta.tex :: TeX, LaTeX, and Friends (Meta)
-- meta.so :: StackOverflow (Meta)
-
-As you can see, these meta sites (and descriptions) could easily be
-calculated from the existing data, so it would be borderline redundant
-to define these.
-
-#+name: stack-setup-api
-#+begin_src emacs-lisp
-  (defvar stack-exchange-api-key-to-site-alist
-    '(("tex" . "TeX, LaTeX, and Friends")
-      ("so" . "StackOverflow")))
-#+end_src
-*** DONE Find a way to get this dynamically from SE
-- Note taken on [2013-03-02 Sat 22:00] \\
-  Use =/sites=.
-I'd hate to have to keep maintaining this /just/ because a new site is
-up.
+rests.  
 ** Other Functions
 =stack-save= gets the ID of the question under point and stores
 it as an Org node:
