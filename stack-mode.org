@@ -318,7 +318,9 @@ Note, however, that favorites are still here.
 
 The width is customizable.
 #+BEGIN_SRC elisp
-  (defvar stack-network-site-line-width fill-column)
+  (defvar stack-network-site-line-width fill-column
+    "The absolute width of each site as listed in Stack Network
+    Mode.")
 #+END_SRC
 
 *** Official Requirements
@@ -348,7 +350,7 @@ The information we will need for this screen is as follows:
 **** Prepare Favorites
 
 *** Building Strings for Output
-- customizable width
+Now that we have the data, it's time to build our screen.
 
 **** Get Notifications and Inbox Items
 
