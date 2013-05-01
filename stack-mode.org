@@ -275,6 +275,7 @@ its child modes) be available upon entering =stack-network-mode=.
 
 ** Interface
 Here is the planned interface:
+
 #+begin_src text :tangle elisp/stack-network-mode.interface
   -*- stack-network -*-
   Logged in as Sean
@@ -315,6 +316,11 @@ by two question marks:
 
 Note, however, that favorites are still here.
 
+The width is customizable.
+#+BEGIN_SRC elisp
+  (defvar stack-network-site-line-width fill-column)
+#+END_SRC
+
 *** Official Requirements
 - The interface must represent logged-in status by representing the
   network-wide name of the user or "Anonymous" otherwise.
@@ -340,8 +346,24 @@ The information we will need for this screen is as follows:
 **** Get Notifications and Inbox Items
 
 **** The Site List
-#+BEGIN_SRC elisp
 
+This one is a little tricky.  In C, one would simply write
+#+BEGIN_SRC c :tangle no
+  printf("%s%*s",
+         name,
+         stack-network-site-fill-width,
+         api-key);
+#+END_SRC
+to create the desired effect.  Unfortunately, =format= isn't this intelligent.
+So, the format string is created that has the correct width
+#+BEGIN_SRC elisp
+  (defun stack-network--make-site-string (name api-key)
+    "Creates a string from `NAME` and `API-KEY` that exactly fills
+    the width given by `STACK-NETWORK-SITE-FILL-WIDTH`.  This
+    function is used in the construction of the interface."
+    (format (format "%%s%%%ds" 
+                    (- stack-network-site-line-width (length name)))
+            name api-key))
 #+END_SRC
 ***** Favorites
 
