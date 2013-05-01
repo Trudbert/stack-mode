@@ -332,7 +332,14 @@ The width is customizable.
 *** Retrieval
 The information we will need for this screen is as follows:
 
-- 
+- The list of 'favorited' sites, if it exists (the file is given by
+  =stack-network-favorites-file=, which defaults to =(concat
+  stack-directory "favorites.list")=)
+- The names and API-tokens of every existing site
+- If logged on
+  - the user's name (as given in the general by StackExchange)
+  - the number of unread notifications
+  - the number of unread inbox items
 
 **** Get Notifications and Inbox Items
 
@@ -346,7 +353,6 @@ The information we will need for this screen is as follows:
 **** Get Notifications and Inbox Items
 
 **** The Site List
-
 This one is a little tricky.  In C, one would simply write
 #+BEGIN_SRC c :tangle no
   printf("%s%*s",
@@ -354,8 +360,10 @@ This one is a little tricky.  In C, one would simply write
          stack-network-site-fill-width,
          api-key);
 #+END_SRC
-to create the desired effect.  Unfortunately, =format= isn't this intelligent.
-So, the format string is created that has the correct width
+to create the desired effect.  Unfortunately, =format= isn't this
+intelligent.  So, the format string is created that has the correct
+width, and then this format string is used in the 'real' format
+string for return.
 #+BEGIN_SRC elisp
   (defun stack-network--make-site-string (name api-key)
     "Creates a string from `NAME` and `API-KEY` that exactly fills
