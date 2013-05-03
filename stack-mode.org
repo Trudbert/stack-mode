@@ -30,7 +30,7 @@ should be as well.  Single-sourcing at its finest.
 
 With this comes a minor something of interest: /how do I get my
 files?/ Right now, you'll need to create a directory (as a sibling to
-this file) called `elisp`.  Once you have done that, run =M-x
+this file) called =elisp/=.  Once you have done that, run =M-x
 org-babel-tangle= on this file; the necessary ELisp files will be
 generated under =elisp/=.
 * TODO Goals
