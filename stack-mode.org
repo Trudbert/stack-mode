@@ -121,6 +121,39 @@ find out more.  (Hint: it even works in this very document!)
 ** Examples
 Example questions and answers are taken from [[http://tex.stackexchange.com/questions/83970/auctex-preview-latex-and-ghostscript-emacs][one of my own questions]]
 retrieved [2013-02-27 Wed 15:36] unless obviously staged.
+* Overview
+Stack Exchange Mode (=stack-mode=) is a comprehensive collection of
+Emacs major (and minor) modes used to browse the Stack Exchange
+network of sites using their official API (in version 2.1, at the
+time of writing).  To this end, there are several major modes
+included:
+
+- Stack :: The entry point of the entire package.
+- Network :: Browses the network of sites.
+- Question Browse :: Browses the questions of a particular site.
+- Question Detail :: Views one question and related information.
+  - Answer :: Minor mode to answer a question
+  - Comment :: Minor mode for commenting on questions and answers.
+- Ask :: Asks a question.
+- Inbox :: Views notifications and other inbox items.
+
+All of these modes interact with each other in various ways.  Many
+times these ways closely mimic the website---other times they take
+full advantage of Emacs' productive atmosphere to provide otherwise
+unrealistic conveniences.[fn:overview-potential-feature] They are
+complex beasts, but all of them have the same basic underlying
+structure:
+
+1. Require dependencies.
+2. Define customizable variables.
+3. Create keymappings.
+4. Define functions.
+5. Provide feature.
+
+Even as this basic layout will always apply, each mode does indeed
+have its own peculiarities and complexities to account for, and such
+accounting is done in the following sections.
+
 * TODO Stack Mode (Entry Point): =stack-mode=
   :PROPERTIES:
   :tangle:   ./elisp/stack.el
@@ -652,3 +685,9 @@ Ask a question.
 * TODO Inbox Mode: =stack-inbox-mode=
 yeah.  View notifications and stuff.
 
+* Footnotes
+
+[fn:overview-potential-feature] One example that comes to mind is a
+minor mode within question browsing such that another buffer 'follows'
+the question point, well, points to.  Org-Agenda users will know what
+I'm talking about.
