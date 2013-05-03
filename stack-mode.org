@@ -428,7 +428,7 @@ hook is automatically run or not per =special-mode=. (TODO)
 *** TODO (re?)create interface for site details
 ** Navigation
 The primary methods of navigation =-next-site=, =-previous-site=, and
-=-enter-site=.  The first two of these three do only what makes sense:
+=-do-enter-site=.  The first two of these three do only what makes sense:
 they move point up and down the list of available sites.
 #+name: network-define-mode-functions
 #+begin_src emacs-lisp
