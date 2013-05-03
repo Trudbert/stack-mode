@@ -107,3 +107,15 @@ anyone would fancy a crack at it.
 * Credits
 Special thanks to
 - [[http://stackoverflow.com/users/727827][@tkf]] on StackOverflow
+* Contributing
+** Setting Up
+*** Windows
+If you'd like to avoid putting in your credentials every time:
+
+1. Download [[https://github.com/anurse/git-credential-winstore/downloads][git-credential-winstore]] and place it in your =git= directory.
+2. Open the Windows Credential Manager (available via Control Panel)
+   and ensure your credentials are stored correctly.
+3. Then, run =git config credential.helper winstore= to instruct =git=
+   where to look for credentials.
+
+You should be good to go!
