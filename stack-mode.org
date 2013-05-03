@@ -448,7 +448,7 @@ they move point up and down the list of available sites.
     "Enter the site at point in another buffer."
     (interactive)
     (message "I have no idea what I'm doing")
-    (stack-exchange-question-browse-mode
+    (stack-exchange-browse-questions
      (stack-network-get-site-under-point)))
 #+end_src
 
