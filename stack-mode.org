@@ -123,7 +123,7 @@ Example questions and answers are taken from [[http://tex.stackexchange.com/ques
 retrieved [2013-02-27 Wed 15:36] unless obviously staged.
 * TODO Stack Mode (Entry Point): =stack-mode=
   :PROPERTIES:
-  :tangle:   ./elisp/stack-mode.el
+  :tangle:   ./elisp/stack.el
   :END:
 Stack mode is /the/ major mode.  What do I mean by this?  Stack mode
 is the entry point of the whole package.  There is no other way to
@@ -135,8 +135,8 @@ framework upon which the rest of the package is built, and makes sure
 all tools are available.
 
 #+name: build-stack-mode
-#+begin_src emacs-lisp :tangle elisp/stack-mode.el
-  ;; stack-mode.el starts here
+#+begin_src emacs-lisp :tangle elisp/stack.el
+  ;; stack.el starts here
   
   <<stack-require-dependencies>>
   <<stack-setup-customization>>
@@ -144,9 +144,9 @@ all tools are available.
   <<stack-setup-api>>
   <<stack-load-children>>
   
-  (provide 'stack-mode)
+  (provide 'stack)
   
-  ; stack-mode.el ends here
+  ; stack.el ends here
 #+end_src
 
 Thus, there are a few packages that it itself requires.
@@ -214,13 +214,13 @@ load all of the child modes.  We will define the variables later, and
 they will be placed in this file.  We do this via =require=.
 #+name: stack-load-children
 #+begin_src emacs-lisp
-  (require 'stack-network-mode)
+  (require 'stack-network)
 #+end_src
 
 We are done here, and =stack-mode= is provided to the user.
 #+name: provide-stack-mode
 #+begin_src emacs-lisp
-  (provide 'stack-mode)
+  (provide 'stack)
 #+end_src
 
 For features that require unsupported write access, the message shall
@@ -244,7 +244,7 @@ float in $[0, 1]$, where $0$ never changes the color).
   :tangle:   ./elisp/stack-network.el
   :END:
 - Note taken on [2013-03-01 Fri 16:04] \\
-  For the purposes of testing, =(require 'stack-mode)= has been
+  For the purposes of testing, =(require 'stack)= has been
   commented out to avoid =load-path= issues.  (I'm really lazy.)  In
   addition, a debugging function has been added to facilitate messaging
   that would be useful to track down bugs.
@@ -253,8 +253,8 @@ Network mode is a major mode that defines functions and binds keys
 useful for browsing and organizing sites in the Stack Exchange
 network.
 #+name: build-network-mode
-#+begin_src emacs-lisp :tangle "elisp/stack-network-mode.el"
-;; stack-network-mode.el starts here
+#+begin_src emacs-lisp :tangle "elisp/stack-network.el"
+;; stack-network.el starts here
 
 <<network-dependencies>>
 <<network-customization>>
@@ -262,7 +262,7 @@ network.
 <<network-define-mode-functions>>
 <<provide-network-mode>>
 
-;; stack-network-mode.el ends here
+;; stack-network.el ends here
 #+end_src
 ** Dependencies
 Since it is an integrated part of =stack-mode= and dispatches to
@@ -270,13 +270,13 @@ several sibling modes, it is imperative that =stack-mode= (and all of
 its child modes) be available upon entering =stack-network-mode=.
 #+name: network-dependencies
 #+begin_src emacs-lisp
-  ;(require 'stack-mode)
+  (require 'stack)
 #+end_src
 
 ** Interface
 Here is the planned interface:
 
-#+begin_src text :tangle elisp/stack-network-mode.interface
+#+begin_src text :tangle elisp/stack-network.interface
   -*- stack-network -*-
   Logged in as Sean
   
@@ -297,7 +297,7 @@ But what if the user is not logged in?  In this case, the name is
 replaced with =Anonymous=, and the 'unread' counters are replaced
 by two question marks:
 
-#+begin_src text :tangle elisp/stack-network-mode-anon.interface
+#+begin_src text :tangle elisp/stack-network-anon.interface
   -*- stack-network -*-
   Logged in as Anonymous
   
@@ -557,7 +557,7 @@ should be configurable to support this.
     "Major mode for navigating and organizing sites on the Stack
   Exchange Network.")
 
-  (provide 'stack-network-mode)
+  (provide 'stack-network)
 #+end_src
 * TODO Question Browse Mode: =stack-question-browse-mode=
   :PROPERTIES:
@@ -580,7 +580,7 @@ Display statistical information on top:
    reputation, the last reviser, their reputation, tags, views,
    answers, accept status, and votes.
 
-#+begin_src text :tangle "elisp/question-browse-mode.interface"
+#+begin_src text :tangle "elisp/question-browse.interface"
   Full title: AUCTeX, preview-latex, and Ghostscript (Emacs)
        Asker: vermiculus (572)                            Bounty:  50
      Answers:  1 (Accepted)            Active: [2013-02-27 Wed 15:44]
