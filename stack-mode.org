@@ -276,11 +276,6 @@ float in $[0, 1]$, where $0$ never changes the color).
   :PROPERTIES:
   :tangle:   ./elisp/stack-network.el
   :END:
-- Note taken on [2013-03-01 Fri 16:04] \\
-  For the purposes of testing, =(require 'stack)= has been
-  commented out to avoid =load-path= issues.  (I'm really lazy.)  In
-  addition, a debugging function has been added to facilitate messaging
-  that would be useful to track down bugs.
 ** Overview
 Network mode is a major mode that defines functions and binds keys
 useful for browsing and organizing sites in the Stack Exchange
