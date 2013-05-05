@@ -87,9 +87,9 @@ will make, this function takes a single =call= (such as "sites" or
 at the moment.
 
 #+BEGIN_SRC emacs-lisp
-  (defun stack-api-request (call keys-alist)
+  (defun stack-api-request (call &optional keys-alist)
     "Makes the specified `CALL` to the Stack Exchange API with the
-    key-value pairs given `KEYS-ALIST`.  For example,
+  key-value pairs given `KEYS-ALIST`.  For example,
   
     (stack-api-request \"sites\" '((page . 2) (page_size . 25)))"
     
@@ -100,5 +100,11 @@ at the moment.
              :success (lambda (&rest args)
                         (setq stack-api-request/return (plist-get args :data))))
     stack-api-request/return)
+  
+  (defun stack-api-get-items (json-object)
+    "Retrieves the `ITEMS` portion of the `JSON-OBJECT` (as
+  returned by `STACK-API-REQUEST`)."
+    (cdr (cadddr json-object)))
+  
 #+END_SRC
 
