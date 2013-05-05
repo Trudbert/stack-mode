@@ -92,18 +92,13 @@ at the moment.
     key-value pairs given `KEYS-ALIST`.  For example,
   
     (stack-api-request \"sites\" '((page . 2) (page_size . 25)))"
-  
-    (let* ((base-call (concat stack-api-root call "?"))
-           (options (alist-to-json keys-alist)))
-      (json-read-from-string
-       (shell-command-to-string
-        (concat "curl -s --compressed" base-call options)))))
-  ;    (request base-call
-  ;     :params options
-  ;     :parser 'json-read
-  ;     :sync t)))
+    
+    (request (concat stack-api-root call)
+             :params keys-alist
+             :parser 'json-read
+             :sync t
+             :success (lambda (&rest args)
+                        (setq stack-api-request/return (plist-get args :data))))
+    stack-api-request/return)
 #+END_SRC
-
-#+RESULTS:
-: stack-api-request
 
