@@ -397,7 +397,7 @@ width, and then this format string is used in the 'real' format
 string for return.
 #+name: network-define-mode-functions
 #+begin_src elisp
-  (defun stack-network--make-site-string (name api-key)
+  (defun stack-network/make-site-string (name api-key)
     "Creates a string from `NAME` and `API-KEY` that exactly fills
     the width given by `STACK-NETWORK-SITE-FILL-WIDTH`.  This
     function is used in the construction of the interface."
@@ -405,6 +405,26 @@ string for return.
                     (- stack-network-site-line-width (length name)))
             name api-key))
 #+end_src
+
+Now that we can easily create /one/ site, it is a simple scaling
+upward to create them all.  The following function uses =mapconcat= to
+concatenate the applications of =stack-network/make-site-string= to
+each site in the argument (given as a sequence).  The concatenation
+is made by joining each application with a delimiter, in this case a
+new line.  This function returns a block of text ready to be inserted
+into a buffer.
+#+NAME network-define-mode-functions
+#+BEGIN_SRC elisp
+  (defun stack-network/make-site-list (sites)
+    "Formats `SITES` to be displayed onscreen in the network browser."
+  
+    (mapconcat (lambda (site)
+                 (stack-network/make-site-string
+                  (cdr (assoc 'name site))
+                  (cdr (assoc 'api_site_parameter site))))
+               sites
+               "\n"))
+#+END_SRC
 ***** Favorites
 
 ***** Others
