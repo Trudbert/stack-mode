@@ -91,17 +91,17 @@ at the moment.
     "Makes the specified `CALL` to the Stack Exchange API with the
   key-value pairs given `KEYS-ALIST`.  For example,
   
-    (stack-api-request \"sites\" '((page . 2) (page_size . 25)))"
+    (stack-api/request \"sites\" '((page . 2) (page_size . 25)))"
     
     (request (concat stack-api-root call)
              :params keys-alist
              :parser 'json-read
              :sync t
              :success (lambda (&rest args)
-                        (setq stack-api-request/return (plist-get args :data))))
-    stack-api-request/return)
+                        (setq stack-api/request/return (plist-get args :data))))
+    stack-api/request/return)
   
-  (defun stack-api-get-items (json-object)
+  (defun stack-api/get-items (json-object)
     "Retrieves the `ITEMS` portion of the `JSON-OBJECT` (as
   returned by `STACK-API-REQUEST`)."
     (cdr (cadddr json-object)))
