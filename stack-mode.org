@@ -507,8 +507,7 @@ documentation), and then passing this list of sites to
 =stack-network/make-site-list=. 
 #+BEGIN_EXAMPLE
   (stack-network/make-site-list
-   (stack-api/get-items
-    (stack-api/request "sites" '((page . "1") (pagesize . "999")))))
+   (stack-network/get-site-list))
 #+END_EXAMPLE
 
 Of course, this is not its use case.  In reality, we separate the
