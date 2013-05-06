@@ -396,10 +396,10 @@ directory.
 #+BEGIN_SRC elisp
   (defvar stack-network-favorites-file
     (concat stack-directory "favorite-networks.list")
-    "The filepath to a whitespace-delimited file of
-  stack_api_tokens corresponding to the user's favorite sites.
-  This variable is used by `STACK-NETWORK-MODE' to group the user's
-  favorite sites to the top for easy access.")
+    "The filepath to a whitespace-delimited file of stack_api_tokens
+  corresponding to the user's favorite sites.  This variable is used
+  by `STACK-NETWORK-MODE' to group the user's favorite sites to the
+  top for easy access.")
 #+END_SRC
 
 And now, we load the site_api_tokens into a list
@@ -409,14 +409,20 @@ favorites file itself.
 
 First, the function ensures that the file exists.  If it does not
 exist, it creates it.
+#+NAME: stack-network-define-mode-functions
 #+BEGIN_SRC elisp
+  (defun make-file (file)
+    (shell-command
+     (format "copy /Y NUL \"%s\" >NUL"
+             (expand-file-name file))))
+  
   (defun stack-network/get-favorites ()
     "Gets the list of favorite sites stored in
   `STACK-NETWORK-FAVORITES-FILE'"
-    (if (not (file-exists-p stack-network-favorites-file))
-        (kill-buffer
-         (save-buffer
-          (find-file-noselect stack-network-favorites-file))))
+    (unless (file-exists-p stack-directory)
+      (make-directory stack-directory))
+    (unless (file-exists-p stack-network-favorites-file)
+      (make-file stack-network-favorites-file))
     (with-temp-buffer
       (insert-file-contents stack-network-favorites-file)
       (split-string (buffer-string))))
