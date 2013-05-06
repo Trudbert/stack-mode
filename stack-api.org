@@ -87,7 +87,7 @@ will make, this function takes a single =call= (such as "sites" or
 at the moment.
 
 #+BEGIN_SRC emacs-lisp
-  (defun stack-api-request (call &optional keys-alist)
+  (defun stack-api/request (call &optional keys-alist)
     "Makes the specified `CALL` to the Stack Exchange API with the
   key-value pairs given `KEYS-ALIST`.  For example,
   
