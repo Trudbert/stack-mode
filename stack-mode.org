@@ -272,6 +272,18 @@ the mode line according to the customizable variable (=nil= or =t=)
 activated) when use exceeds =stack-display-API-color-threshold= (a
 float in $[0, 1]$, where $0$ never changes the color).
 
+Auxiliary files (the list of favorite sites, saved questions, ...) are
+stored in the =stack-directory=.  This variable defaults to a
+directory within the user's emacs directory.
+
+#+NAME: stack-setup-customization
+#+BEGIN_SRC elisp
+  (defvar stack-directory
+    (concat user-emacs-directory "stack-mode/")
+    "The directory containing all auxiliary files related to
+  `STACK-MODE'.")
+#+END_SRC
+
 * TODO Network Mode: =stack-network-mode=
   :PROPERTIES:
   :tangle:   ./elisp/stack-network.el
@@ -349,7 +361,7 @@ The width is customizable.
 #+begin_src elisp
   (defvar stack-network-site-line-width fill-column
     "The absolute width of each site as listed in Stack Network
-    Mode.")
+  Mode.")
 #+end_src
 
 *** Official Requirements
@@ -363,21 +375,53 @@ The width is customizable.
 *** Retrieval
 The information we will need for this screen is as follows:
 
-- The list of 'favorited' sites, if it exists (the file is given by
-  =stack-network-favorites-file=, which defaults to =(concat
+- [X] The list of 'favorited' sites, if it exists (the file is given
+  by =stack-network-favorites-file=, which defaults to =(concat
   stack-directory "favorites.list")=)
-- The names and API-tokens of every existing site
-- If logged on
-  - the user's name (as given in the general by StackExchange)
-  - the number of unread notifications
-  - the number of unread inbox items
+- [X] The names and API-tokens of every existing site
+- [ ] If logged on
+  - [ ] the user's name (as given in the general by StackExchange)
+  - [ ] the number of unread notifications
+  - [ ] the number of unread inbox items
 
 **** Get Notifications and Inbox Items
 
 **** Get the List of Sites
 
 **** Prepare Favorites
+The favorites list is stored in a separate file in the user's Emacs
+directory.  
 
+#+NAME: network-customization
+#+BEGIN_SRC elisp
+  (defvar stack-network-favorites-file
+    (concat stack-directory "favorite-networks.list")
+    "The filepath to a whitespace-delimited file of
+  stack_api_tokens corresponding to the user's favorite sites.
+  This variable is used by `STACK-NETWORK-MODE' to group the user's
+  favorite sites to the top for easy access.")
+#+END_SRC
+
+And now, we load the site_api_tokens into a list
+=stack-network/favorite-sites= to assist in output later.  Note that
+this field shouldn't be directly modified; it is better to modify the
+favorites file itself.
+
+First, the function ensures that the file exists.  If it does not
+exist, it creates it.
+#+BEGIN_SRC elisp
+  (defun stack-network/get-favorites ()
+    "Gets the list of favorite sites stored in
+  `STACK-NETWORK-FAVORITES-FILE'"
+    (if (not (file-exists-p stack-network-favorites-file))
+        (kill-buffer
+         (save-buffer
+          (find-file-noselect stack-network-favorites-file))))
+    (with-temp-buffer
+      (insert-file-contents stack-network-favorites-file)
+      (split-string (buffer-string))))
+  
+#+END_SRC
 *** Building Strings for Output
 Now that we have the data, it's time to build our screen.
 
@@ -425,6 +469,22 @@ into a buffer.
                sites
                "\n"))
 #+END_SRC
+
+Thus, a complete list can be built by requesting all sites through
+=stack-api/request=, using =stack-api/get-items= to focus in on the
+items (where each item is a =site= object, according to the
+documentation), and then passing this list of sites to
+=stack-network/make-site-list=. 
+#+BEGIN_EXAMPLE
+  (stack-network/make-site-list
+   (stack-api/get-items
+    (stack-api/request "sites" '((page . "1") (pagesize . "999")))))
+#+END_EXAMPLE
+
+Of course, this is not its use case.  In reality, we separate the
+sites into favorites and non-favorites.  We have already [[*Prepare%20Favorites][prepared the
+list of favorite sites]], so all we have to do is print each group
+out.  This is covered in detail in the next sections.
 ***** Favorites
 
 ***** Others
