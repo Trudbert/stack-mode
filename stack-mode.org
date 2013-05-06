@@ -435,18 +435,15 @@ First, the function ensures that the file exists.  If it does not
 exist, it creates it.
 #+NAME: network-define-mode-functions
 #+BEGIN_SRC elisp
-  (defun make-file (file)
-    (shell-command
-     (format "copy /Y NUL \"%s\" >NUL"
-             (expand-file-name file))))
+  (defun ensure-file-exists (file)
+    (unless (file-exists-p file)
+      (make-directory (file-name-directory file) t)
+      (write-region "" nil file nil 'silent)))
   
   (defun stack-network/get-favorites ()
     "Gets the list of favorite sites stored in
   `STACK-NETWORK-FAVORITES-FILE'"
-    (unless (file-exists-p stack-directory)
-      (make-directory stack-directory))
-    (unless (file-exists-p stack-network-favorites-file)
-      (make-file stack-network-favorites-file))
+    (ensure-file-exists stack-network-favorites-file)
     (with-temp-buffer
       (insert-file-contents stack-network-favorites-file)
       (split-string (buffer-string))))
