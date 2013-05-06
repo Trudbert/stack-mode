@@ -399,11 +399,18 @@ The information we will need for this screen is as follows:
 **** Get the List of Sites
 #+NAME: network-define-mode-functions
 #+BEGIN_SRC elisp
-
+  (defun stack-network/site-is-meta (site)
+    "Returns non-nil if site is a meta site."
+    (equal (cdr (assoc 'site_type site)) "meta_site"))
 
   (defun stack-network/get-site-list ()
-    (stack-api/get-items
-     (stack-api/request "sites" '((pagesize . "999")))))
+    "Gets the list of all sites in the SE network which are not
+  meta."
+    (stack-util/filter 
+     (lambda (site)
+       (if (not (stack-network/site-is-meta site)) site))
+     (stack-api/get-items
+      (stack-api/request "sites" '((pagesize . "999"))))))
 #+END_SRC
 **** Prepare Favorites
 The favorites list is stored in a separate file in the user's Emacs
