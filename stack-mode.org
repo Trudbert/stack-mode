@@ -14,6 +14,9 @@
 # still be expanded during execution and entanglement (and necessarily
 # so).
 #+PROPERTY noweb strip-export
+* Notes
+- Use highlight-line mode for network mode
+- For question browsing, have a look at RefTeX citation-picking code
 
 * About This Document
 This document is largely incomplete.  All information is more than
