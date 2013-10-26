@@ -16,8 +16,7 @@
 #+PROPERTY noweb strip-export
 
 This document is largely incomplete.  All information is more than
-subject to change.  As GitHub's =org-mode= parsing is currently
-broken, it is advised that you view this document locally.
+subject to change.
 
 * Goals
 ** Provide a full-featured, Emacs-based Stack Exchange experience.

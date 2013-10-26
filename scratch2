@@ -35,10 +35,10 @@
 ;	  (message "\tIcon URL:            %s" (assoc-default 'icon_url                 site))
 ;	  (message "\tAudience:            %s" (assoc-default 'audience                 site))
 ;	  (message "\tSite URL:            %s" (assoc-default 'site_url                 site))
-	  (message "\tAPI Site Parameter:  %s" (assoc-default 'api_site_parameter       site))
 ;	  (message "\tLogo URL:            %s" (assoc-default 'logo_url                 site))
-;	  (message "\tSite Type:           %s" (assoc-default 'site_type                site)))
-        )stack-api/cache/sites)
+;	  (message "\tSite Type:           %s" (assoc-default 'site_type                site))
+	  (message "\tAPI Site Parameter:  %s" (assoc-default 'api_site_parameter       site)))
+	stack-api/cache/sites)
 
 (mapcar (lambda (site)
 	  (if (not (string= "linked_meta" (assoc-default 'site_state site)))
@@ -74,3 +74,17 @@
 
 (with-current-buffer (get-buffer-create "*SX Network*")
   (insert "Hello World"))
+
+(defconst stack-util/html-links2org-links-regexp
+  "<a href=\"\\(\\(?:https?://\\)?[A-Za-z0-9-/\.]+\\)\">\\(.*\\)</a>"
+  "Matches a single HTML anchor (<a href...>...</a>) and groups
+  it into target and display.")
+
+(defun stack-util/html-links2org-links ()
+  "Converts HTML tags in the buffer (as specified by
+`stack-util/html-links2org-links-regexp') into Org-style links."
+  (goto-char 1)
+  (while (search-forward-regexp stack-util/html-links2org-links-regexp nil t)
+    (replace-match (concat "[[" (match-string 1) "][" (match-string 2) "]]") t nil)))
+
+(makunbound stack-util/html-links2org-links-regexp)

@@ -63,13 +63,13 @@ a number of cells in which to store data.
 
 - sites :: stores information about all sites in general
 - questions :: stores information about each site's questions as
-               retrieved.  For example, if I request some of TeX's
-               questions, it will then store =(tex (((question-a)
-               (answers)) ((question-b) (answers))))=.  That is,
-               =stack-questions= is a list of lists where the first
-               element of each list is the =api_site_parameter= and it
-               is followed by a list of question-(list of answers)
-               pairs.  (This needs explicating.)
+               retrieved.
+
+**** Sites data structure
+
+**** Question data structure
+
+**** Implementation
 
 #+begin_src emacs-lisp :tangle "elisp/stack-api.el"
   (defvar stack-api/cache nil
