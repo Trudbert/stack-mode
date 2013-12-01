@@ -7,9 +7,6 @@ This is meant more as a reference for when I am (or another user is)
 not online.  This is not official documentation, although I hope it is
 accurate up to [2013-03-02 Sat 17:00].
 
-Hopefully, the org exporter to texinfo will be up and running before
-this is.
-
 * Acknowledgments
 Thanks to everyone who made this possible, especially the community
 for which this package is intended.
