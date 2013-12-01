@@ -127,11 +127,336 @@ This makes it more convenient to form methods.
 Since we are dealing with data that maintains a specific form
   (and we are even receiving it as such via JSON),
   it makes sense to create objects for the major concepts of the API.
-**** Site
-**** User
-**** Question
-**** Answer
-**** Comment
+Intelligent structure are provided by the Common Lisp library.
+#+BEGIN_SRC elisp
+  (require 'cl)
+#+END_SRC
+
+**** TODO Date
+#+BEGIN_SRC elisp
+  (defstruct stack-api-date
+    "UNIX epoch time" ; do I really need a separate type for this?
+    )
+#+END_SRC
+**** DONE Site
+#+BEGIN_SRC elisp
+  (defstruct stack-api-site
+    "This type represents a site in the Stack Exchange network."
+    api_site_parameter                    ; string
+    audience                              ; string
+    favicon_url                           ; string
+    icon_url                              ; string
+    launch_date                           ; date
+    logo_url                              ; string
+    name                                  ; string
+    site_state                            ; one of 'normal, 'closed_beta, 'open_beta, or 'linked_meta
+    site_type                             ; one of 'main_site or 'meta_site, but new options may be added.
+    site_url                              ; string
+    styling                               ; styling
+    twitter_account                       ; string
+    related_sites                         ; an array of related_sites
+    open_beta_date                        ; date
+    markdown_extensions                   ; an array of 'MathJax', 'Prettify', 'Balsamiq' or 'jTab' strings, but new options may be added.
+    high_resolution_icon_url              ; string
+    closed_beta_date                      ; date
+    aliases                  )            ; an array of strings
+#+END_SRC
+**** DONE Related Site
+#+BEGIN_SRC elisp
+  (defstruct stack-api-related-site
+    "This type represents a site that is related in some way to
+    another site.  Examples include chat and meta, and parent
+    sites.  Applications should be able to gracefully handle the
+    additon of new related site types."
+  
+    name                                  ; string
+    relation                              ; string; one of 'parent, 'meta, or 'chat, but new options may be added
+    site_url                              ; string
+    api_site_parameter)                   ; string
+#+END_SRC
+**** DONE User
+#+BEGIN_SRC elisp
+  (defstruct stack-api-user
+    "This type describes a user on a Stack Exchange site.  There
+  are a number of different user types returned by the Stack
+  Exchange API, depending on the method.  Others include
+  shallow_user and network_user."
+  
+    account_id                    ; integer
+    answer_count                  ; integer
+    badge_counts                  ; badge_count
+    creation_date                 ; date
+    display_name                  ; string
+    down_vote_count               ; integer
+    is_employee                   ; boolean
+    last_access_date              ; date
+    link                          ; string ; unchanged in unsafe filters
+    profile_image                 ; string ; unchanged in unsafe filters
+    question_count                ; integer
+    reputation                    ; integer
+    reputation_change_day         ; integer
+    reputation_change_month       ; integer
+    reputation_change_quarter     ; integer
+    reputation_change_week        ; integer
+    reputation_change_year        ; integer
+    up_vote_count                 ; integer
+    user_id                       ; integer, refers to a user
+    user_type                     ; one of 'unregistered, 'registered, 'moderator, or 'does_not_exist
+    view_count                    ; integer
+    ;; the following may be absent
+    about_me                      ; string ; unchanged in unsafe filters
+    accept_rate                   ; integer
+    age                           ; integer
+    last_modified_date            ; date
+    location                      ; string
+    timed_penalty_date            ; date
+    website_url)                  ; string ; unchanged in unsafe filters
+#+END_SRC
+**** DONE Shallow User
+#+BEGIN_SRC elisp
+  (defstruct stack-api-shallow-user
+    "This type represents a user, but omits many of the fields
+    found on the full User type.  This type is mostly analogous to
+    the `user card' found on many pages (like the question page) on
+    a Stack Exchange site."
+  
+    user_type                     ; one of 'unregistered, 'registered, 'moderator, or 'does_not_exist
+    ;; the following may be absent
+    user_id                       ; integer, refers to a user
+    reputation                    ; integer
+    profile_image                 ; string ; unchanged in unsafe filters
+    link                          ; string ; unchanged in unsafe filters
+    display_name                  ; string
+    accept_rate                   ; integer
+#+END_SRC
+**** DONE Network User
+#+BEGIN_SRC elisp
+  (defstruct stack-api-network-api
+  "This type represents a user, however it is greatly reduced when
+  compared to the full User type to reduce the amount of work that
+  needs to be done to fetch it from multiple sites in the network."
+  
+   account_id                             ; integer
+   answer_count                           ; integer
+   badge_counts                           ; badge_count
+   creation_date                          ; date
+   last_access_date                       ; date
+   question_count                         ; integer
+   reputation                             ; integer
+   site_name                              ; string
+   site_url                               ; string
+   user_id                                ; integer, refers to a user
+   user_type)                             ; one of 'unregistered, 'registered, 'moderator, or 'does_not_exist
+#+END_SRC
+**** DONE Post
+#+BEGIN_SRC elisp
+  (defstruct stack-api-post
+  "This type represents the intersection of the Question and Answer types.
+  
+  It's used in cases where it would be beneficial to mix questions
+  and answers in a response."
+  
+  body                            ; string ; unchanged in unsafe filters
+  creation_date                   ; date
+  down_vote_count                 ; integer
+  last_activity_date              ; date
+  link                            ; string
+  post_id                         ; integer, refers to a post
+  post_type                       ; one of question, or answer
+  score                           ; integer
+  up_vote_count                   ; integer
+  ;; the following may be absent
+  last_edit_date                  ; date
+  owner                           ; shallow_user
+  comments)                       ; an array of comments
+#+END_SRC
+**** DONE Question
+#+BEGIN_SRC elisp
+  (defstruct stack-api-question
+    "This type represents a question on one of the Stack Exchange
+  sites, such as this famous RegEx question.  This type is heavily
+  inspired by the question page itself, and can optionally return
+  comments and answers accordingly."
+  
+    answer_count                    ; integer
+    body                            ; string; unchanged in unsafe filters
+    close_vote_count                ; integer
+    creation_date                   ; date
+    delete_vote_count               ; integer
+    down_vote_count                 ; integer
+    favorite_count                  ; integer
+    is_answered                     ; boolean
+    last_activity_date              ; date
+    link                            ; string; unchanged in unsafe filters
+    notice                          ; notice
+    question_id                     ; integer, refers to a question
+    reopen_vote_count               ; integer
+    score                           ; integer
+    tags                            ; an array of strings
+    title                           ; string
+    up_vote_count                   ; integer
+    view_count                      ; integer
+    last_edit_date                  ; date
+    ;; the following may be absent
+    accepted_answer_id              ; integer
+    answers                         ; an array of answers
+    bounty_amount                   ; integer
+    bounty_closes_date              ; date
+    closed_date                     ; date
+    closed_reason                   ; string
+    comments                        ; an array of comments
+    community_owned_date            ; date
+    protected_date                  ; date
+    owner                           ; shallow_user
+    migrated_to                     ; migration_info
+    migrated_from                   ; migration_info
+    locked_date)                    ; date
+#+END_SRC
+**** DONE Answer
+#+BEGIN_SRC elisp
+  (defstruct stack-api-answer
+    "This type represents an answer to a question on one of the
+  Stack Exchange sites, such as this famous answer of bobince's.
+  As on the question page, it is possible to fetch the comments on
+  an answer as part of a call; though this is not done by default."
+  
+    answer_id                     ; integer, refers to an answer
+    body                          ; string ; unchanged in unsafe filters
+    creation_date                 ; date
+    down_vote_count               ; integer
+    is_accepted                   ; boolean
+    last_activity_date            ; date
+    link                          ; string ; unchanged in unsafe filters
+    question_id                   ; integer, refers to a question
+    score                         ; integer
+    tags                          ; an array of strings
+    title                         ; string
+    up_vote_count                 ; integer
+    ;; the following may be absent
+    owner                         ; shallow_user
+    locked_date                   ; date
+    last_edit_date                ; date
+    community_owned_date          ; date
+    comments)                     ; an array of comments
+#+END_SRC
+**** DONE Comment
+#+BEGIN_SRC elisp
+  (defstruct stack-api-comment
+    "All Questions and Answers on a Stack Exchange site can be
+  commented on, and this type represents those comments.  Comments
+  can also be optionally directed at users, when this is the case
+  the reply_to_user property is set (if it is requested in the
+  current filter)."
+  
+    body                          ; string ; unchanged in unsafe filters
+    body_markdown                 ; string
+    comment_id                    ; integer, refers to a comment
+    creation_date                 ; date
+    edited                        ; boolean
+    link                          ; string ; unchanged in unsafe filters
+    post_id                       ; integer, refers to a post
+    post_type                     ; one of question, or answer
+    score                         ; integer
+    ;; the following may be absent
+    reply_to_user                 ; shallow_user
+    owner)                        ; shallow_user
+#+END_SRC
+**** DONE Notification
+#+BEGIN_SRC elisp
+  (defstruct stack-api-notification
+    "This type represents an item in a user's Notification Tab.
+  
+  Be aware that the types of items returned by this method are
+  subject to change at any time.  In particular, new types may be
+  introduced without warning.  Applications should deal with these
+  changes gracefully.
+  
+  Applications should not publish a user's notification tab without
+  their explicit consent, as while most item types are public in
+  nature there are a few which are (and should remain) private."
+  
+    body                          ; string ; unchanged in unsafe filters
+    creation_date                 ; date
+    is_unread                     ; boolean
+    notification_type             ; one of 'generic, 'profile_activity, 'bounty_expired, 'bounty_expires_in_one_day, 'badge_earned, 'bounty_expires_in_three_days, 'reputation_bonus, 'accounts_associated, 'new_privilege, 'post_migrated, 'moderator_message, 'registration_reminder, 'edit_suggested, 'substantive_edit, or 'bounty_grace_period_started
+    site                          ; site
+    ;; the following may be absent
+    post_id)                      ; integer, refers to a post
+#+END_SRC
+**** DONE [[http://api.stackexchange.com/docs/types/info][Info]]
+#+BEGIN_SRC elisp
+  (defstruct stack-api-info
+    "This type describes a site in the Stack Exchange network."
+    answers_per_minute                    ; decimal
+    api_revision                          ; string
+    badges_per_minute                     ; decimal
+    new_active_users                      ; integer
+    questions_per_minute                  ; decimal
+    site                                  ; site
+    total_accepted                        ; integer
+    total_answers                         ; integer
+    total_badges                          ; integer
+    total_comments                        ; integer
+    total_questions                       ; integer
+    total_unanswered                      ; integer
+    total_users                           ; integer
+    total_votes)                          ; integer
+#+END_SRC
+**** DONE [[http://api.stackexchange.com/docs/types/suggested-edit][Suggested Edit]]
+#+BEGIN_SRC elisp
+  (defstruct stack-api-suggested-edit
+    "This type represents suggested edit on a Stack Exchange site."
+  
+   comment                         ; string
+   creation_date                   ; date
+   post_id                         ; integer, refers to a post
+   post_type                       ; one of question, or answer
+   suggested_edit_id               ; integer, refers to a suggested_edit
+   ;; the following may be absent
+   body                            ; string unchanged in unsafe filters
+   proposing_user                  ; shallow_user
+   rejection_date                  ; date
+   tags                            ; an array of strings
+   title                           ; string
+   approval_date)                  ; date
+#+END_SRC
+**** DONE Badge
+#+BEGIN_SRC elisp
+  (defstruct stack-api-badge
+  "This type represents a badge on a Stack Exchange site.
+  
+  Some badges, like Autobiographer, are held in common across all
+  Stack Exchange sites. Others, like most tag badges, vary on a
+  site by site basis.
+  
+  Remember that ids are never guaranteed to be the same between
+  sites, even if a badge exists on both sites."
+  
+   award_count                    ; integer
+   badge_id                       ; integer, refers to a badge
+   badge_type                     ; one of named, or tag_based
+   description                    ; string ; unchanged in unsafe filters
+   link                           ; string ; unchanged in unsafe filters
+   name                           ; string
+   rank                           ; one of 'gold, 'silver, or 'bronze
+   ;; the following may be absent
+   user)                          ; shallow_user
+#+END_SRC
+**** DONE Badge Count
+#+BEGIN_SRC elisp
+  (defstruct stack-api-badge-count
+  "This type represents the total Badges, segregated by rank, a
+  user has earned."
+  
+   bronze                                 ; integer
+   gold                                   ; integer
+   silver)                                ; integer
+#+END_SRC
+**** TODO Event
+**** TODO Tag
+**** TODO User Timeline
+**** TODO Filter
+**** TODO Reputation
 *** Cache
 In order to minimize the number of calls we make to the API, we set up
 a number of cells in which to store data.
