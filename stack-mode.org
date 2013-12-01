@@ -20,8 +20,7 @@
 
 * About This Document
 This document is largely incomplete.  All information is more than
-subject to change.  As GitHub's =org-mode= parsing is currently
-broken, it is advised that you view this document locally.
+subject to change.
 
 You've probably noticed that this document is rather large.  The users
 of this package are more than likely to make their own customizations
@@ -184,6 +183,8 @@ all tools are available.
 #+begin_src emacs-lisp :tangle elisp/stack.el
   ;; stack.el starts here
   
+  (add-to-list 'load-path "~/github/vermiculus/stack-mode")
+  
   <<stack-require-dependencies>>
   <<stack-setup-customization>>
   <<stack-setup-keymap>>
@@ -216,6 +217,11 @@ for automatic install via MELPA.
 #+name: stack-require-dependencies
 #+begin_src emacs-lisp
   (require 'request)
+#+end_src
+
+#+name: stack-require-dependencies
+#+begin_src emacs-lisp
+  (require 'stack-api)
 #+end_src
 
 Simply put, =defgroup= defines a customization group for the graphical
@@ -275,10 +281,6 @@ not support this action."  The functions shall exist (along with their
 key-maps), but the functionality will be replaced by the display of
 such a message.
 
-When I say minor mode, I may mean a major mode mostly based off of
-another mode, as these functions don't make any sense in any other
-context.
-
 At all times, the percentage of API requests left can be displayed in
 the mode line according to the customizable variable (=nil= or =t=)
 =stack-display-API-requests-in-mode-line= and shall turn red (if
@@ -302,12 +304,25 @@ directory within the user's emacs directory.
   :tangle:   ./elisp/stack-network.el
   :END:
 ** Overview
+=======
+* Network Mode: =stack-network-mode=
+:PROPERTIES:
+:ID: A3928908-C7A4-43C5-A31A-E3145A134664
+:END:
+- Note taken on [2013-03-01 Fri 16:04] \\
+  For the purposes of testing, =(require 'stack-mode)= has been
+  commented out to avoid =load-path= issues.  (I'm really lazy.)  In
+  addition, a debugging function has been added to facilitate messaging
+  that would be useful to track down bugs.
+** Introduction
 Network mode is a major mode that defines functions and binds keys
 useful for browsing and organizing sites in the Stack Exchange
 network.
 #+name: build-network-mode
 #+begin_src emacs-lisp :tangle "elisp/stack-network.el"
 ;; stack-network.el starts here
+
+(put 'stack-network-mode 'mode-class 'special)
 
 <<network-dependencies>>
 <<network-customization>>
@@ -325,12 +340,11 @@ its child modes) be available upon entering =stack-network-mode=.
 #+begin_src emacs-lisp
   (require 'stack)
 #+end_src
-
 ** Interface
 Here is the planned interface:
 
 #+begin_src text :tangle elisp/stack-network.interface
-  -*- stack-network -*-
+  -*- mode: stack-network -*-
   Logged in as Sean
   
     14 unread inbox items
@@ -351,13 +365,13 @@ replaced with =Anonymous=, and the 'unread' counters are replaced
 by two question marks:
 
 #+begin_src text :tangle elisp/stack-network-anon.interface
-  -*- stack-network -*-
-  Logged in as Anonymous
+  -*- mode: stack-network -*-
+  Logged in as email.address@example.com
   
-    ?? unread inbox items
-    ?? unread notifications
+     4 unread inbox items                            (press `i' to view)
+     1 unread notification
   
-  Favorites.............................................................
+  Bookmarks.............................................................
     TeX, LaTeX, and Friends                                          tex
     StackOverflow                                          stackoverflow
     StackApps                                                  stackapps
@@ -520,45 +534,165 @@ out.  This is covered in detail in the next sections.
 
 *** Output to Screen
 ** Customization
+=======
+*** Generating the Interface
+#+begin_src emacs-lisp
+  (defvar stack-network/buffer-name "*SX Network*")
+#+end_src
+Generating this interface may not be straight-forward.  Each site is
+listed under one of two lists; they are either under `Bookmarks' or
+under `Other Sites'.  Bookmarked sites are those sites which the user
+sets manually and must not be auto-populated on installation, but must
+be persistent from run to run.  This functionality is detailed in
+[[*Bookmarks][Bookmarks]].  Since Network Mode runs in its own buffer, each function
+that performs insertions intended for the buffer must be wrapped in
+=(with-current-buffer (get-buffer-create stack-network/buffer-name))=.
+
+Now, there are two major parts to be considered:
+**** Notification Area
+This portion of the screen is not difficult.  First, we obtain the
+numbers of unread inbox and notification items and save them into
+=items= using =let=.  Then, the separate inbox and notification counts
+are derived from =items= and then used later, while =items= is stored
+permanently in =stack-network/inbox=, paired with the time it was
+obtained.  After that, each line is printed to inform the user.
+#+begin_src emacs-lisp
+  (let* ((items (stack-network/get-inbox))
+         (inbox-unread-count (length (first items)))
+         (notif-unread-count (length (second items))))
+    (setq stack-network/inbox (items . (current-time)))
+    (insert (format "  %d inbox-unread-count                            (press `i' to view)" inbox-unread-count))
+    (insert (format "  %d notif-unread-count" notif-unread-count)))
+#+end_src
+**** Sites Area
+The next major part is the network listing.  For this, we must
+download all of the necessary information using the API.  All of the
+information is stored in =stack-api/sites= in the format specified by
+=json-read=.  Since this is a expensive action both server-side and
+client-side, the all of the information downloaded about sites on the
+Stack Exchange network is stored in a cell, namely
+=stack-network/cache/sites=.
+#+begin_src emacs-lisp
+  (setq stack-network/cache/sites nil)
+#+end_src
+
+Once we've prepared a place for the data to live, we can go ahead and
+define a way to request the information.
+#+begin_src emacs-lisp
+  (defvar stack-network/overview-filter "!SkUv9wBBh-bmgeS5Ev")
+  (defvar stack-network/overview-pagesize 1000)
+  
+  (defun stack-api/request-site-overview ()
+      (request
+       (stack-api/method "sites")
+       :parser (function json-read)
+       :params (list (cons 'filter
+                           stack-network/overview-filter)
+                     (cons 'pagesize
+                           (number-to-string
+                            stack-network/overview-pagesize)))
+       :success (function*
+                 (lambda (&key data &allow-other-keys)
+                   (stack-network/cache/sites-update data)))))
+  
+  (defun stack-network/cache/sites-update (data)
+    (setq stack-network/cache/sites (assoc-default 'items data)))
+#+end_src
+This function brings down =data= using the API and sends it to
+=stack-network/cache/sites-update= for processing.  (Note: all cached data
+cells have a corresponding =-update= function that takes the necessary
+data to bring the value to current.)  We filter out all data that we
+don't need for the overview window and include only =name=,
+=api_site_parameter=, =site_type=, =site_url=, and =audience= as a
+default (stored in =/overview-filter=).  (Note: =/overview-pagesize=
+stores the number of pages to receive from the API in one go.
+=pagesize=1000= should return several thousand sites if they exist, so
+this is not optimal.)
+
+
+#+begin_src emacs-lisp
+  (defun stack-api-find-all-sites ()
+    (request
+     "https://api.stackexchange.com/2.1/sites"
+     :parser 'json-read
+     :success (function*
+               (lambda (&key data &allow-other-keys)
+                (setq stack-api/sites (assoc-default 'items data))))))
+  
+  (stack-api/find-all-sites)
+#+end_src
+*** Bookmarks
+- save in emacs.d
+  - just a list of api tokens
+** Hooks
 A mode hook is provided for customizability.  I am not sure that this
 hook is automatically run or not per =special-mode=. (TODO)
 #+name: network-customization
 #+begin_src emacs-lisp
   (defvar stack-network-mode-hook nil)
 #+end_src
+** Filters used
+To minimize the amount of data we bring in on the whole, this filter
+is used to bring in the data needed to create the network-browsing
+buffer.  It removes all information relating to graphics or graphical
+user interfaces:
 
+- styling
+  - link_color
+  - tag_background_color
+  - tag_foreground_color
+- favicon_url
+- high_resolution_icon_url
+- icon_url
+
+#+begin_src emacs-lisp
+  (setq stack-network-site-browsing-filter "!*L*NGu5tk(KLfZcr")
+#+end_src
 ** Default Key-map
+:PROPERTIES:
+:noweb-ref: network-keymap
+:END:
 
-- n :: next site
-- p :: previous site
-- RET :: enter site into [[*Question%20Browse%20Mode:%20%3Dstack-question-browse-mode%3D][Question Browse Mode]]
-- u :: profile summary (stack-profile-mode ?)
-- C-u u :: profile summary for user
-- i :: goto [[*Inbox%20Mode:%20%3Dstack-inbox-mode%3D][Inbox Mode]]
-- , :: reorder: move site up
-- . :: reorder: move site down
-- j :: jump to bookmarked sites
-- C-m :: (RET)
-- o ::  enter site into [[*Question%20Browse%20Mode:%20%3Dstack-question-browse-mode%3D][Question Browse Mode]]
-- b :: toggle bookmark
-- C-i :: display site details
+The key-map for Network mode is designed to be efficient and
+intuitive, taking advantage of all the most common functions with maps
+that /make sense/ (e.g. using the Meta key does the action on the
+site's /meta/) while maintaining `traditional' mappings.
 
-#+name: network-keymap
+- q    :: quit (inherited)
+- g    :: revert/refresh (inherited) remap =revert-buffer=
+- n    :: next site
+- p    :: previous site
+- o*   :: enter site into [[*Question%20Browse%20Mode:%20%3Dstack-question-browse-mode%3D][Question Browse Mode]]
+- RET* :: enter site into [[*Question%20Browse%20Mode:%20%3Dstack-question-browse-mode%3D][Question Browse Mode]]
+- TAB* :: display site details
+- b    :: toggle bookmark
+- ,    :: move site up   (only valid in bookmarks)
+- .    :: move site down (only valid in bookmarks)
+- j    :: jump to bookmarked sites
+- u*   :: profile summary
+- i    :: goto [[*Inbox%20Mode:%20%3Dstack-inbox-mode%3D][Inbox Mode]]
+
+,* meta-enabled; adding the meta key to this combination will perform
+the action on the site's meta.
+
 #+begin_src emacs-lisp
   (defvar stack-network-mode-map
     (let ((map (make-keymap)))
-      (define-key map "n"     'stack-network-next-site)
-      (define-key map "p"     'stack-network-previous-site)
-      (define-key map ","     'stack-network-move-site-up)
-      (define-key map "."     'stack-network-move-site-down)
-      (define-key map "j"     'stack-network-jump-to-bookmarks)
-      (define-key map "\C-m"  'stack-network-do-enter-site) ; ret
-      (define-key map "o"     'stack-network-do-enter-site)
-      (define-key map "u"     'stack-network-do-profile-summary)
-      (define-key map "\C-uu" 'stack-network-do-profile-summary-for-user)
-      (define-key map "i"     'stack-network-do-inbox)
-      (define-key map "b"     'stack-network-toggle-bookmark)
-      (define-key map "\C-i"  'stack-network-display-details) ; tab
+      (define-key map (kbd "n")     'stack-network-next-site)
+      (define-key map (kbd "p")     'stack-network-previous-site)
+      (define-key map (kbd "o")     'stack-network-do-enter-site)
+      (define-key map (kbd "M-o")   'stack-network-do-enter-site-meta)
+      (define-key map (kbd "RET")   'stack-network-do-enter-site)
+      (define-key map (kbd "M-RET") 'stack-network-do-enter-site-meta)
+      (define-key map (kbd "TAB")   'stack-network-display-details)
+      (define-key map (kbd "M-TAB") 'stack-network-display-details-meta)
+      (define-key map (kbd "b")     'stack-network-toggle-bookmark)
+      (define-key map (kbd "j")     'stack-network-jump-to-bookmarks)
+      (define-key map (kbd ".")     'stack-network-move-site-down)
+      (define-key map (kbd ",")     'stack-network-move-site-up)
+      (define-key map (kbd "u")     'stack-network-do-profile-summary)
+      (define-key map (kbd "M-u")   'stack-network-do-profile-summary-meta)
+      (define-key map (kbd "i")     'stack-network-do-inbox)
       map)
     "Keymap for Stack Exchange: Network Browser major mode")
 #+end_src
@@ -599,6 +733,15 @@ rests.
 it as an Org node:
 
 #+begin_src org :tangle no
+=======
+*** =stack-network--print-site=
+#+begin_src emacs-lisp
+  (defun stack-network--print-site (api-tok)
+    ())
+#+end_src
+*** =stack-save=
+gets the ID of the question under point and stores it as an Org node:
+#+begin_src org
   ,* tex.stackexchange.com
   ,  :PROPERTIES:
   ,  :STACK_API_TOKEN: tex
@@ -672,14 +815,16 @@ it as an Org node:
   ,:END:
   ,Why use Emacs?  Geez.  TeXMaker ftw!
 #+end_src
+*** =stack-view-saved=
+ switches to non-networked mode.  That is, all questions available to
+be seen and browsed are those saved in =stack-mode/saved.org= under
+the Emacs directory (normally =~/.emacs.d/=).  This 'mode' does not
+require Emacs to create or sustain any sort of network connection.
 
-=stack-view-saved= switches to non-networked mode.  That is, all
-questions available to be seen and browsed are those saved in
-=.emacs.d/.stack-mode/saved.org=.  This 'mode' does not require
-Emacs to create or sustain any sort of network connection.
+*This is an important feature of Stack Mode for Emacs.*
 
-This is an important feature of Stack Mode.  Without offline access to
-information, it loses a great deal of its appeal.
+Without offline access to information, it loses a great deal of its
+appeal.  The 
 ** Conclusion
 Network mode is the highest-level mode available within =stack-mode=.
 Its primary purpose is to be a dispatcher for other commands.  Since
@@ -786,8 +931,9 @@ up below in comment-mode.  Should support mentions.
 A minor mode atop =markdown-mode=, adding support for tagging.
 
 Ask a question.
+
 * TODO Inbox Mode: =stack-inbox-mode=
-yeah.  View notifications and stuff.
+Mode for notifications and inbox.
 
 * Footnotes
 

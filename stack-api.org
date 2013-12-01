@@ -7,6 +7,17 @@ This is meant more as a reference for when I am (or another user is)
 not online.  This is not official documentation, although I hope it is
 accurate up to [2013-04-08 Mon 20:55].
 
+* Acknowledgments
+Thanks to everyone who made this possible, especially the community
+for which this package is intended.
+
+** Users
+- tkf, the creator and maintainer of the =request= package, without
+  which this package would still be a pipe dream.
+** Questions
+Below are a list of questions I've made while creating this package.
+- [[http://stackoverflow.com/questions/15118304][Making JSON requests within Emacs]]
+- [[http://stackoverflow.com/questions/15190684][JSON requests within Emacs, Phase 2: Getting a collection of items]]
 * Supporting Utilitarian Functions
 This variable declares the format off a time string.  The format has
 been designed to be compatible with Org-mode time-stamps, for whatever
@@ -20,7 +31,7 @@ This function takes the time `EPOCH-TIME` and formats it into a string
 according to `STACK-FORMAT-TIME-STRING`.
 #+begin_src emacs-lisp
   (defun stack-make-time (epoch-time)
-    (format-time-string stack-time-format-string))
+    (format-time-string stack-time-format-string (seconds-to-time epoch-time)))
 #+end_src
 
 Converts the key-value pairs of an association list into the
@@ -45,16 +56,11 @@ equivalent JSON format.
 #+END_SRC
 
 * Version 2.1
+- [[https://api.stackexchange.com/docs][SX.API v2.1]]
 Version 2.1 of the Stack Exchange API allows for read-only access (and
 write-access for comments!) to the Stack Exchange network.
 
-The Stack Exchange API uses JSON as its main method of interaction.
-
-Available Features:
-
-- Write methods 
-
-(yeah, this needs to be expanded.)
+The Stack Exchange API uses JSON as its main method of communication.
 
 We shall define the API version:
 #+BEGIN_SRC emacs-lisp
@@ -63,10 +69,11 @@ We shall define the API version:
 
 ** Supported Functions
 This is a list of functions in Stack Mode that are supported by this
-version of the API.  
+version of the API.
 ** Emacs Lisp Implementation
 In order to lubricate the interface between Emacs and Stack Exchange's
 JSON-based API.
+
 *** TODO Authentication
 https://api.stackexchange.com/docs/authentication
 *** TODO Information Retrieval
@@ -108,3 +115,355 @@ at the moment.
   
 #+END_SRC
 
+=======
+
+
+This makes it more convenient to form methods.
+#+begin_src emacs-lisp :tangle "elisp/stack-api.el"
+  (defun stack-api/method (method)
+    (concat "https://api.stackexchange.com/" method))
+#+end_src
+*** Classes
+Since we are dealing with data that maintains a specific form
+  (and we are even receiving it as such via JSON),
+  it makes sense to create objects for the major concepts of the API.
+**** Site
+**** User
+**** Question
+**** Answer
+**** Comment
+*** Cache
+In order to minimize the number of calls we make to the API, we set up
+a number of cells in which to store data.
+
+At the very top, we have a list of sites.
+Each site is a pair where the first element is
+  a collection of information about the site in general (as a =site= object).
+*************** TODO create site object
+*************** END
+
+
+- car :: meta-information about the site
+- cdr :: list of questions
+
+- sites :: stores information about all sites in general
+- questions :: stores information about each site's questions as
+               retrieved.
+
+**** Sites data structure
+
+**** Question data structure
+
+**** Implementation
+
+#+begin_src emacs-lisp :tangle "elisp/stack-api.el"
+  (defvar stack-api/cache nil
+    "A sparse cache of information for the sites on the Stack
+  Exchange Network")
+#+end_src
+
+#+begin_src emacs-lisp :noweb yes :tangle "elisp/stack-api.el"
+  ;; stack-api.el starts here
+  
+  ; Build on the shoulders of giants
+  <<require-dependencies>>
+  
+  ; Declare caches
+  <<declare-caches>>
+  
+  ; Define all structures
+  <<define-structures>>
+  
+  ; Define functions for authentication
+  <<authentication>>
+  
+  ; Define functions for read
+  <<read-methods>>
+  
+  ; Define functions for write
+  <<write-methods>>
+  
+  ;; stack-api.el ends here
+#+end_src
+*** Dependencies
+:PROPERTIES:
+:noweb-ref: require-dependencies
+:END:
+**** JSON
+#+begin_src emacs-lisp
+  (require 'json)
+#+end_src
+*** Authentication
+https://api.stackexchange.com/docs/authentication
+*** Elisp Copy
+**** =/sites=
+
+*** Objects
+:PROPERTIES:
+:noweb-ref: define-structures
+:END:
+https://api.stackexchange.com/docs?tab=type#docs
+**** TODO =site-aggregate=
+Holds all information about a site:
+- site object
+- list of question objects paired with a list of its answers
+
+**** DONE =access_token=
+#+begin_src emacs-lisp
+  (defstruct stack-access-token
+    access-token
+    account-id
+    expires-on-date ; may be absent (nil)
+    scope ; may be absent (nil)
+    )
+#+end_src
+**** DONE =account_merge=
+#+begin_src emacs-lisp
+  (defstruct stack-account-merge
+    merge-date
+    new-account-id
+    old-account-id)
+#+end_src
+**** DONE =answer=
+#+begin_src emacs-lisp
+  (defstruct stack-answer
+    answer-id
+    body
+    comments
+    community-owned-date
+    creation-date
+    down-vote-count
+    is-accepted
+    last-activity-date
+    last-edit-date
+    link
+    locked-date
+    owner
+    question-id
+    score
+    tags
+    title
+    up-vote-count)
+#+end_src
+**** DONE =badge=
+#+begin_src emacs-lisp
+  (defstruct stack-badge
+    award-count
+    badge-id
+    badge-type ; one of 'named or 'tag-based
+    description
+    link
+    name
+    rank
+    user)
+#+end_src
+**** DONE =badge_count=
+#+begin_src emacs-lisp
+  (defstruct stack-badge-count
+    bronze
+    gold
+    silver)
+#+end_src
+**** DONE =comment=
+#+begin_src emacs-lisp
+  (defstruct stack-comment
+    body
+    body-markdown
+    comment-id
+    creation-date
+    edited
+    link
+    owner ; shallow-user, may be absent (nil)
+    post-id
+    post-type ; one of 'question or 'answer
+    reply-to-user ; shallow-user, may be absent (nil)
+    score)
+#+end_src
+**** DONE =error=
+#+begin_src emacs-lisp
+  (defstruct stack-error
+    description
+    error-id
+    error-name)
+#+end_src
+**** DONE =event=
+#+begin_src emacs-lisp
+  (defstruct stack-event
+    creation-date
+    event-id
+    event-type
+    excerpt
+    link)
+#+end_src
+**** DONE =filter=
+#+begin_src emacs-lisp
+  (defstruct stack-filter
+    filter
+    filter-type ; one of 'safe, 'unsafe, or 'invalid
+    included-fields)
+#+end_src
+**** DONE =inbox_item=
+#+begin_src emacs-lisp
+  (defstruct stack-inbox-item
+    answer-id
+    body
+    comment-id
+    creation-date
+    is-unread
+    item-type ; 'comment 'chat-message 'new-answer 'careers-message 'careers-invitations 'meta-question 'post-notes 'moderator-message
+    link
+    question-id
+    site
+    title)
+#+end_src
+**** DONE =info=
+#+begin_src emacs-lisp
+  (defstruct stack-info
+    answers-per-minute
+    api-revision
+    badges-per-minute
+    new-active-users
+    questions-per-minute
+    site
+    total-accepted
+    total-answers
+    total-badges
+    total-comments
+    total-questions
+    total-unanswered
+    total-users
+    total-votes)
+#+end_src
+**** TODO =migration_info=
+**** DONE =network_user=
+#+begin_src emacs-lisp
+  (defstruct network-user
+    account-id
+    answer-count
+    badge-counts ; badge-count object
+    creation-date
+    last-access-date
+    question-count
+    reputation
+    site-name
+    site-url
+    user-id
+    user-type ; one of 'unregistered, 'registered, 'moderator, or 'does-not-exist
+  )
+#+end_src
+**** TODO =notice=
+**** DONE =notification=
+#+begin_src emacs-lisp
+  (defstruct stack-notification
+    body
+    creation-date
+    is-unread
+    notification-type
+    post-id
+    site)
+#+end_src
+**** DONE =related_site=
+#+begin_src emacs-lisp
+  (defstruct stack-related-site
+    api-site-parameter
+    name
+    relation
+    site-url)
+#+end_src
+**** TODO =post=
+**** TODO =priviledge=
+**** TODO =question=
+**** TODO =question_timeline=
+**** TODO =reputation=
+**** TODO =reputation_history=
+**** TODO =reputation_timeline=
+**** TODO =revision=
+**** DONE =shallow_user=
+#+begin_src emacs-lisp
+  (defstruct stack-shallow-user
+    accept-rate
+    display-name
+    link
+    profile-image
+    reputation
+    user-ide
+    user-type ; one of 'unregistered, 'registered, 'moderator, or 'does-not-exist
+  )
+#+end_src
+**** DONE =site=
+#+begin_src emacs-lisp
+  (defstruct stack-site
+    aliases ; may be absent (nil)
+    api-site-parameter
+    audience
+    closed-beta-date ; may be absent (nil)
+    favicon-url
+    high-resolution-icon-url ; may be absent (nil)
+    icon-url
+    launch-date
+    logo-url
+    markdown-extensions ; may be absent (nil)
+    name
+    open-beta-date ; may be absent (nil)
+    related-sites ; may be absent (nil)
+    site-state ; one of 'normal, 'closed-beta, 'open-beta, or 'linked-meta
+    site-type ; one of 'main-site or 'meta-site
+    site-url
+    styling ; separate object
+    twitter-account ; may be absent (nil)
+  )
+#+end_src
+**** DONE =styling=
+I'm not certain that this will be useful, but it's in the API.  Full
+support!
+#+begin_src emacs-lisp
+  (defstruct stack-stlying
+    link-color
+    tag-forground-color
+    tag-background-color)
+#+end_src
+**** TODO =suggested_edit=
+**** TODO =tag=
+**** TODO =tag_score=
+**** TODO =tag_synonym=
+**** TODO =tag_wiki=
+**** TODO =top_tag=
+**** DONE =user=
+#+begin_src emacs-lisp
+  (defstruct stack-user
+    about-me
+    accept-rate
+    account-id
+    age
+    answer-count
+    badge-counts ; badge-count object
+    creation-date
+    display-name
+    down-vote-count
+    is-employee
+    last-access-date
+    last-modified-date
+    link
+    location
+    profile-image
+    question-count
+    reputation
+    reputation-change-day
+    reputation-change-month
+    reputation-change-quarter
+    reputation-change-week
+    reputation-change-year
+    timed-penalty-date
+    up-vote-count
+    user-id
+    user-type
+    view-count
+    website-url)
+#+end_src
+**** TODO =user_timeline=
+**** TODO =write_permission=
+**** Finding out if a Site is Meta
+#+begin_src emacs-lisp
+  (defun stack-api/site-is-meta (site)
+    (string= "meta_site" (assoc-default 'site_type site)))
+#+end_src
