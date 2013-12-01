@@ -64,7 +64,7 @@ The Stack Exchange API uses JSON as its main method of communication.
 
 We shall define the API version:
 #+BEGIN_SRC emacs-lisp
-  (defvar stack-api-root "api.stackexchange.com/2.1/")
+  (defvar stack-api/root "api.stackexchange.com/2.1/")
 #+END_SRC
 
 ** Supported Functions
@@ -100,7 +100,7 @@ at the moment.
   
     (stack-api/request \"sites\" '((page . 2) (page_size . 25)))"
     
-    (request (concat stack-api-root call)
+    (request (concat stack-api/root call)
              :params keys-alist
              :parser 'json-read
              :sync t
@@ -110,7 +110,7 @@ at the moment.
   
   (defun stack-api/get-items (json-object)
     "Retrieves the `ITEMS` portion of the `JSON-OBJECT` (as
-  returned by `STACK-API-REQUEST`)."
+  returned by `STACK-API/REQUEST`)."
     (cdr (cadddr json-object)))
 #+END_SRC
 *** Classes
@@ -124,13 +124,13 @@ Intelligent structure are provided by the Common Lisp library.
 
 **** TODO Date
 #+BEGIN_SRC elisp
-  (defstruct stack-api-date
+  (defstruct stack-api/date
     "UNIX epoch time" ; do I really need a separate type for this?
     )
 #+END_SRC
 **** DONE Site
 #+BEGIN_SRC elisp
-  (defstruct stack-api-site
+  (defstruct stack-api/site
     "This type represents a site in the Stack Exchange network."
     api_site_parameter                    ; string
     audience                              ; string
@@ -153,7 +153,7 @@ Intelligent structure are provided by the Common Lisp library.
 #+END_SRC
 **** DONE Related Site
 #+BEGIN_SRC elisp
-  (defstruct stack-api-related-site
+  (defstruct stack-api/related-site
     "This type represents a site that is related in some way to
     another site.  Examples include chat and meta, and parent
     sites.  Applications should be able to gracefully handle the
@@ -166,7 +166,7 @@ Intelligent structure are provided by the Common Lisp library.
 #+END_SRC
 **** DONE User
 #+BEGIN_SRC elisp
-  (defstruct stack-api-user
+  (defstruct stack-api/user
     "This type describes a user on a Stack Exchange site.  There
   are a number of different user types returned by the Stack
   Exchange API, depending on the method.  Others include
@@ -204,7 +204,7 @@ Intelligent structure are provided by the Common Lisp library.
 #+END_SRC
 **** DONE Shallow User
 #+BEGIN_SRC elisp
-  (defstruct stack-api-shallow-user
+  (defstruct stack-api/shallow-user
     "This type represents a user, but omits many of the fields
     found on the full User type.  This type is mostly analogous to
     the `user card' found on many pages (like the question page) on
@@ -221,7 +221,7 @@ Intelligent structure are provided by the Common Lisp library.
 #+END_SRC
 **** DONE Network User
 #+BEGIN_SRC elisp
-  (defstruct stack-api-network-api
+  (defstruct stack-api/network-api
   "This type represents a user, however it is greatly reduced when
   compared to the full User type to reduce the amount of work that
   needs to be done to fetch it from multiple sites in the network."
@@ -240,7 +240,7 @@ Intelligent structure are provided by the Common Lisp library.
 #+END_SRC
 **** DONE Post
 #+BEGIN_SRC elisp
-  (defstruct stack-api-post
+  (defstruct stack-api/post
   "This type represents the intersection of the Question and Answer types.
   
   It's used in cases where it would be beneficial to mix questions
@@ -262,7 +262,7 @@ Intelligent structure are provided by the Common Lisp library.
 #+END_SRC
 **** DONE Question
 #+BEGIN_SRC elisp
-  (defstruct stack-api-question
+  (defstruct stack-api/question
     "This type represents a question on one of the Stack Exchange
   sites, such as this famous RegEx question.  This type is heavily
   inspired by the question page itself, and can optionally return
@@ -304,7 +304,7 @@ Intelligent structure are provided by the Common Lisp library.
 #+END_SRC
 **** DONE Answer
 #+BEGIN_SRC elisp
-  (defstruct stack-api-answer
+  (defstruct stack-api/answer
     "This type represents an answer to a question on one of the
   Stack Exchange sites, such as this famous answer of bobince's.
   As on the question page, it is possible to fetch the comments on
@@ -331,7 +331,7 @@ Intelligent structure are provided by the Common Lisp library.
 #+END_SRC
 **** DONE Comment
 #+BEGIN_SRC elisp
-  (defstruct stack-api-comment
+  (defstruct stack-api/comment
     "All Questions and Answers on a Stack Exchange site can be
   commented on, and this type represents those comments.  Comments
   can also be optionally directed at users, when this is the case
@@ -353,7 +353,7 @@ Intelligent structure are provided by the Common Lisp library.
 #+END_SRC
 **** DONE Notification
 #+BEGIN_SRC elisp
-  (defstruct stack-api-notification
+  (defstruct stack-api/notification
     "This type represents an item in a user's Notification Tab.
   
   Be aware that the types of items returned by this method are
@@ -375,7 +375,7 @@ Intelligent structure are provided by the Common Lisp library.
 #+END_SRC
 **** DONE [[http://api.stackexchange.com/docs/types/info][Info]]
 #+BEGIN_SRC elisp
-  (defstruct stack-api-info
+  (defstruct stack-api/info
     "This type describes a site in the Stack Exchange network."
     answers_per_minute                    ; decimal
     api_revision                          ; string
@@ -394,7 +394,7 @@ Intelligent structure are provided by the Common Lisp library.
 #+END_SRC
 **** DONE [[http://api.stackexchange.com/docs/types/suggested-edit][Suggested Edit]]
 #+BEGIN_SRC elisp
-  (defstruct stack-api-suggested-edit
+  (defstruct stack-api/suggested-edit
     "This type represents suggested edit on a Stack Exchange site."
   
    comment                         ; string
@@ -412,7 +412,7 @@ Intelligent structure are provided by the Common Lisp library.
 #+END_SRC
 **** DONE Badge
 #+BEGIN_SRC elisp
-  (defstruct stack-api-badge
+  (defstruct stack-api/badge
   "This type represents a badge on a Stack Exchange site.
   
   Some badges, like Autobiographer, are held in common across all
@@ -434,7 +434,7 @@ Intelligent structure are provided by the Common Lisp library.
 #+END_SRC
 **** DONE Badge Count
 #+BEGIN_SRC elisp
-  (defstruct stack-api-badge-count
+  (defstruct stack-api/badge-count
   "This type represents the total Badges, segregated by rank, a
   user has earned."
   
