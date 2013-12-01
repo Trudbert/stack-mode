@@ -112,17 +112,7 @@ at the moment.
     "Retrieves the `ITEMS` portion of the `JSON-OBJECT` (as
   returned by `STACK-API-REQUEST`)."
     (cdr (cadddr json-object)))
-  
 #+END_SRC
-
-=======
-
-
-This makes it more convenient to form methods.
-#+begin_src emacs-lisp :tangle "elisp/stack-api.el"
-  (defun stack-api/method (method)
-    (concat "https://api.stackexchange.com/" method))
-#+end_src
 *** Classes
 Since we are dealing with data that maintains a specific form
   (and we are even receiving it as such via JSON),
