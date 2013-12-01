@@ -34,16 +34,11 @@ Below are a list of questions I've made while creating this package.
 Version 2.1 of the Stack Exchange API allows for read-only access (and
 write-access for comments!) to the Stack Exchange network.
 
-The Stack Exchange API uses JSON as its main method of interaction.
+The Stack Exchange API uses JSON as its main method of communication.
 
-Available Features:
-
-- Write methods 
-
-(yeah, this needs to be expanded.)
 ** Supported Functions
 This is a list of functions in Stack Mode that are supported by this
-version of the API.  
+version of the API.
 ** Emacs Lisp Implementation
 In order to lubricate the interface between Emacs and Stack Exchange's
 JSON-based API.
