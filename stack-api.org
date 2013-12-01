@@ -54,9 +54,28 @@ This makes it more convenient to form methods.
   (defun stack-api/method (method)
     (concat "https://api.stackexchange.com/" method))
 #+end_src
+*** Classes
+Since we are dealing with data that maintains a specific form
+  (and we are even receiving it as such via JSON),
+  it makes sense to create objects for the major concepts of the API.
+**** Site
+**** User
+**** Question
+**** Answer
+**** Comment
 *** Cache
 In order to minimize the number of calls we make to the API, we set up
 a number of cells in which to store data.
+
+At the very top, we have a list of sites.
+Each site is a pair where the first element is
+  a collection of information about the site in general (as a =site= object).
+*************** TODO create site object
+*************** END
+
+
+- car :: meta-information about the site
+- cdr :: list of questions
 
 - sites :: stores information about all sites in general
 - questions :: stores information about each site's questions as
