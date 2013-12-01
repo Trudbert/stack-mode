@@ -454,9 +454,6 @@ a number of cells in which to store data.
 At the very top, we have a list of sites.
 Each site is a pair where the first element is
   a collection of information about the site in general (as a =site= object).
-*************** TODO create site object
-*************** END
-
 
 - car :: meta-information about the site
 - cdr :: list of questions
