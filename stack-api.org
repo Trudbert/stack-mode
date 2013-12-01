@@ -5,7 +5,7 @@
 
 This is meant more as a reference for when I am (or another user is)
 not online.  This is not official documentation, although I hope it is
-accurate up to [2013-04-08 Mon 20:55].
+accurate up to [2013-12-01 Sun].
 
 * Acknowledgments
 Thanks to everyone who made this possible, especially the community
