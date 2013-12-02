@@ -32,9 +32,9 @@ should be as well.  Single-sourcing at its finest.
 
 With this comes a minor something of interest: /how do I get my
 files?/ Right now, you'll need to create a directory (as a sibling to
-this file) called =elisp/=.  Once you have done that, run =M-x
-org-babel-tangle= on this file; the necessary ELisp files will be
-generated under =elisp/=.
+this file) called =emacs-lisp/=.  Once you have done that, run =M-x
+org-babel-tangle= on this file; the necessary Emacs-Lisp files will be
+generated under =emacs-lisp/=.
 * TODO Goals
 ** Provide a full-featured, Emacs-based Stack Exchange experience.
 This package must take reasonably full advantage of the Stack Exchange
@@ -158,17 +158,19 @@ accounting is done in the following sections.
 
 * TODO Utilities
   :PROPERTIES:
-  :tangle:   ./elisp/stack-util.el
+  :tangle:   ./emacs-lisp/stack-util.el
   :END:
-Common functions 'missing' from Elisp
-#+BEGIN_SRC elisp
+Common functions 'missing' from Emacs-Lisp
+#+BEGIN_SRC emacs-lisp
   (defun stack-util/filter (condp list)
     (delq nil
           (mapcar (lambda (x) (funcall condp x)) list)))
 #+END_SRC
+#+BEGIN_SRC emacs-lisp
+#+END_SRC
 * TODO Stack Mode (Entry Point): =stack-mode=
   :PROPERTIES:
-  :tangle:   ./elisp/stack.el
+  :tangle:   ./emacs-lisp/stack.el
   :END:
 Stack mode is /the/ major mode.  What do I mean by this?  Stack mode
 is the entry point of the whole package.  There is no other way to
@@ -180,7 +182,7 @@ framework upon which the rest of the package is built, and makes sure
 all tools are available.
 
 #+name: build-stack-mode
-#+begin_src emacs-lisp :tangle elisp/stack.el
+#+begin_src emacs-lisp :tangle emacs-lisp/stack.el
   ;; stack.el starts here
   
   (add-to-list 'load-path "~/github/vermiculus/stack-mode")
@@ -292,7 +294,7 @@ stored in the =stack-directory=.  This variable defaults to a
 directory within the user's emacs directory.
 
 #+NAME: stack-setup-customization
-#+BEGIN_SRC elisp
+#+BEGIN_SRC emacs-lisp
   (defvar stack-directory
     (concat user-emacs-directory "stack-mode/")
     "The directory containing all auxiliary files related to
@@ -319,7 +321,7 @@ Network mode is a major mode that defines functions and binds keys
 useful for browsing and organizing sites in the Stack Exchange
 network.
 #+name: build-network-mode
-#+begin_src emacs-lisp :tangle "elisp/stack-network.el"
+#+begin_src emacs-lisp :tangle "emacs-lisp/stack-network.el"
 ;; stack-network.el starts here
 
 (put 'stack-network-mode 'mode-class 'special)
@@ -337,13 +339,13 @@ Since it is an integrated part of =stack-mode= and dispatches to
 several sibling modes, it is imperative that =stack-mode= (and all of
 its child modes) be available upon entering =stack-network-mode=.
 #+name: network-dependencies
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (require 'stack)
-#+end_src
+#+END_SRC
 ** Interface
 Here is the planned interface:
 
-#+begin_src text :tangle elisp/stack-network.interface
+#+begin_src text :tangle emacs-lisp/stack-network.interface
   -*- mode: stack-network -*-
   Logged in as Sean
   
@@ -364,7 +366,7 @@ But what if the user is not logged in?  In this case, the name is
 replaced with =Anonymous=, and the 'unread' counters are replaced
 by two question marks:
 
-#+begin_src text :tangle elisp/stack-network-anon.interface
+#+begin_src text :tangle emacs-lisp/stack-network-anon.interface
   -*- mode: stack-network -*-
   Logged in as email.address@example.com
   
@@ -385,7 +387,7 @@ Note, however, that favorites are still here.
 
 The width is customizable.
 #+name: network-customization
-#+begin_src elisp
+#+begin_src emacs-lisp
   (defvar stack-network-site-line-width fill-column
     "The absolute width of each site as listed in Stack Network
   Mode.")
@@ -415,7 +417,7 @@ The information we will need for this screen is as follows:
 
 **** Get the List of Sites
 #+NAME: network-define-mode-functions
-#+BEGIN_SRC elisp
+#+BEGIN_SRC emacs-lisp
   (defun stack-network/site-is-meta (site)
     "Returns non-nil if site is a meta site."
     (equal (cdr (assoc 'site_type site)) "meta_site"))
@@ -434,7 +436,7 @@ The favorites list is stored in a separate file in the user's Emacs
 directory.  
 
 #+NAME: network-customization
-#+BEGIN_SRC elisp
+#+BEGIN_SRC emacs-lisp
   (defvar stack-network-favorites-file
     (concat stack-directory "favorite-networks.list")
     "The filepath to a whitespace-delimited file of stack_api_tokens
@@ -451,7 +453,7 @@ favorites file itself.
 First, the function ensures that the file exists.  If it does not
 exist, it creates it.
 #+NAME: network-define-mode-functions
-#+BEGIN_SRC elisp
+#+BEGIN_SRC emacs-lisp
   (defun ensure-file-exists (file)
     (unless (file-exists-p file)
       (make-directory (file-name-directory file) t)
@@ -484,7 +486,7 @@ intelligent.  So, the format string is created that has the correct
 width, and then this format string is used in the 'real' format
 string for return.
 #+name: network-define-mode-functions
-#+begin_src elisp
+#+begin_src emacs-lisp
   (defun stack-network/make-site-string (name api-key)
     "Creates a string from `NAME` and `API-KEY` that exactly fills
     the width given by `STACK-NETWORK-SITE-FILL-WIDTH`.  This
@@ -502,7 +504,7 @@ is made by joining each application with a delimiter, in this case a
 new line.  This function returns a block of text ready to be inserted
 into a buffer.
 #+NAME: network-define-mode-functions
-#+BEGIN_SRC elisp
+#+BEGIN_SRC emacs-lisp
   (defun stack-network/make-site-list (sites)
     "Formats `SITES` to be displayed onscreen in the network browser."
   
@@ -843,7 +845,7 @@ should be configurable to support this.
 #+end_src
 * TODO Question Browse Mode: =stack-question-browse-mode=
   :PROPERTIES:
-  :tangle:   ./elisp/stack-question-browse.el
+  :tangle:   ./emacs-lisp/stack-question-browse.el
   :END:
 This mode is buffer-read-only.
 
@@ -862,7 +864,7 @@ Display statistical information on top:
    reputation, the last reviser, their reputation, tags, views,
    answers, accept status, and votes.
 
-#+begin_src text :tangle "elisp/question-browse.interface"
+#+begin_src text :tangle "emacs-lisp/question-browse.interface"
   Full title: AUCTeX, preview-latex, and Ghostscript (Emacs)
        Asker: vermiculus (572)                            Bounty:  50
      Answers:  1 (Accepted)            Active: [2013-02-27 Wed 15:44]
@@ -893,9 +895,8 @@ Display statistical information on top:
  - m :: switch to meta
 * TODO Question Detail Mode: =stack-question-detail-mode=
   :PROPERTIES:
-  :tangle:   ./elisp/stack-question-detail.el
+  :tangle:   ./emacs-lisp/stack-question-detail.el
   :END:
-
 Outline-mode-like question voting, comment voting/flagging
 
 This mode is buffer-read-only.
@@ -912,9 +913,8 @@ The question and each answer are top-level nodes.
        .emacs.d)
 * TODO Comment Mode: =stack-comment-mode=
   :PROPERTIES:
-  :tangle:   ./elisp/stack-comment
+  :tangle:   ./emacs-lisp/stack-comment
   :END:
-
 Minor mode for use atop markdown-mode.
 
 Valid for Questions and Answers; just a small window that would open
