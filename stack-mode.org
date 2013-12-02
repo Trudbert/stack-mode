@@ -65,11 +65,11 @@ customize them in a way that is useful to Stack Mode in its normal
 execution.
 * TODO Conventions and Terminology
 ** Code Conventions
-- All functions will have `stack-network-` / `stack-comment-` /
+- All functions will have =stack-network-= / =stack-comment-= /
   etc. (as appropriate) as a prefix.
 
 - Functions which must alter the mode the user ends up in will be
-  further prefixed with `do-` as to flag its impact.
+  further prefixed with =do-= as to flag its impact.
 
 - Functions with no arguments will effect its lack thereof with =()=,
   not =nil=.  While =()= is /precisely/ the same as =nil= in Lisp (and
@@ -494,8 +494,8 @@ string for return.
 #+name: network-define-mode-functions
 #+begin_src emacs-lisp
   (defun stack-network/make-site-string (name api-key)
-    "Creates a string from `NAME` and `API-KEY` that exactly fills
-    the width given by `STACK-NETWORK-SITE-FILL-WIDTH`.  This
+    "Creates a string from `NAME' and `API-KEY' that exactly fills
+    the width given by `STACK-NETWORK-SITE-FILL-WIDTH'.  This
     function is used in the construction of the interface."
     (format (format "%%s%%%ds" 
                     (- stack-network-site-line-width (length name)))
@@ -512,7 +512,7 @@ into a buffer.
 #+NAME: network-define-mode-functions
 #+BEGIN_SRC emacs-lisp
   (defun stack-network/make-site-list (sites)
-    "Formats `SITES` to be displayed onscreen in the network browser."
+    "Formats `SITES' to be displayed onscreen in the network browser."
   
     (mapconcat (lambda (site)
                  (stack-network/make-site-string
