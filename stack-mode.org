@@ -166,7 +166,28 @@ Common functions 'missing' from Emacs-Lisp
     (delq nil
           (mapcar (lambda (x) (funcall condp x)) list)))
 #+END_SRC
+
+Formatting a number of seconds
 #+BEGIN_SRC emacs-lisp
+  (format-time-string "%A, %B %d, %T (%z)" (seconds-to-time 1250553600))
+  
+  (defun ordinal (n)
+    (format
+     (concat
+      "%d"
+      (if (memq n '(11 12 13)) "th"
+        (let ((last-digit (% n 10)))
+          (case last-digit
+            (1 "st")
+            (2 "nd")
+            (3 "rd")
+            (otherwise "th"))))) n))
+  
+  (defun ordinal/clean-format-string (string)
+  
+  ;; note extra format spec
+  (defvar stack-mode/time-format-string/verbose
+    "%A, %B %D %T %z")
 #+END_SRC
 * TODO Stack Mode (Entry Point): =stack-mode=
   :PROPERTIES:
