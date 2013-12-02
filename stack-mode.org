@@ -197,6 +197,10 @@ all tools are available.
   
   ; stack.el ends here
 #+end_src
+** Load Dependencies
+:PROPERTIES:
+:noweb-ref: stack-require-dependencies
+:END:
 
 Thus, there are a few packages that it itself requires.
 
@@ -207,7 +211,6 @@ here.  The JSON package provides many utilities for manipulating JSON
 snippets within Emacs Lisp, and is required for the operation of this
 package.  =json.el= is included with Emacs 24+ (and can easily be
 obtained from the ELPA if missing).
-#+name: stack-require-dependencies
 #+begin_src emacs-lisp
   (require 'json)
 #+end_src
@@ -225,13 +228,15 @@ for automatic install via MELPA.
 #+begin_src emacs-lisp
   (require 'stack-api)
 #+end_src
-
+** Customization
+:PROPERTIES:
+:noweb-ref: stack-setup-customization
+:END:
 Simply put, =defgroup= defines a customization group for the graphical
 interface within Emacs.  Since it pulls all of the customizable
 settings together and how to customize them, it is also useful as a
 'word bank' of sorts for customizing the package manually.  Every
 customizable variable in the entire package is listed here.
-#+name: stack-setup-customization
 #+begin_src emacs-lisp
     (defgroup stack-exchange
       nil
@@ -242,11 +247,13 @@ customizable variable in the entire package is listed here.
 Every mode needs a hook, so we here define one.  This hook is run
 /after/ stack-mode is finished loading (when called interactively or
 from Emacs Lisp).
-#+name: stack-setup-customization
 #+begin_src emacs-lisp
   (defvar stack-mode-hook nil)
 #+end_src
-
+** Keymap
+:PROPERTIES:
+:noweb-ref: stack-setup-keymap
+:END:
 In addition to a hook, most if not all major modes define their own
 key-map.  Stack mode as a whole is no exception, but remembering the
 nature of =stack-mode= as a dispatcher, a key-map seems out of place
@@ -254,7 +261,6 @@ here.  As such, the official key-map for =stack-mode= defines all keys
 to be =nil= except those that are necessary for the smooth use of
 Emacs as an operating system.  Such necessary keystrokes include
 =C-g=, =M-x=, and others.
-#+name: stack-setup-keymap
 #+begin_src emacs-lisp
   (defvar stack-mode-map
     (let ((map (make-sparse-keymap)))
@@ -262,17 +268,22 @@ Emacs as an operating system.  Such necessary keystrokes include
     "Keymap for Stack Exchange major mode.  This keymap is not
     used.")
 #+end_src
-
+** Load Children
+:PROPERTIES:
+:noweb-ref: stack-load-children
+:END:
 All that is left to do now is to define each customizable variable and
 load all of the child modes.  We will define the variables later, and
 they will be placed in this file.  We do this via =require=.
-#+name: stack-load-children
 #+begin_src emacs-lisp
   (require 'stack-network)
 #+end_src
-
+** Provide Mode
+:PROPERTIES:
+:noweb-ref: provide-stack-mode
+:END:
 We are done here, and =stack-mode= is provided to the user.
-#+name: provide-stack-mode
+
 #+begin_src emacs-lisp
   (provide 'stack)
 #+end_src
@@ -300,14 +311,7 @@ directory within the user's emacs directory.
     "The directory containing all auxiliary files related to
   `STACK-MODE'.")
 #+END_SRC
-
 * TODO Network Mode: =stack-network-mode=
-  :PROPERTIES:
-  :tangle:   ./elisp/stack-network.el
-  :END:
-** Overview
-=======
-* Network Mode: =stack-network-mode=
 :PROPERTIES:
 :ID: A3928908-C7A4-43C5-A31A-E3145A134664
 :END:
@@ -335,10 +339,12 @@ network.
 ;; stack-network.el ends here
 #+end_src
 ** Dependencies
+:PROPERTIES:
+:noweb-ref: network-dependencies
+:END:
 Since it is an integrated part of =stack-mode= and dispatches to
 several sibling modes, it is imperative that =stack-mode= (and all of
 its child modes) be available upon entering =stack-network-mode=.
-#+name: network-dependencies
 #+BEGIN_SRC emacs-lisp
   (require 'stack)
 #+END_SRC
