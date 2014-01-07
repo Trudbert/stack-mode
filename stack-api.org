@@ -3,6 +3,7 @@
 #+Date: [2014-01-06 Mon]
 #+MACRO: version 2.1
 
+#+name: get_current_commit
 #+begin_src emacs-lisp :exports none :tangle no
   (substring (shell-command-to-string "git rev-parse --short HEAD") 0 -1)
 #+end_src
@@ -15,8 +16,9 @@ that uses these utilities (such as =stack-mode.el=).
 
 This document interacts with version {{{version}}} of the
 StackExchange API and is maintained by {{{author}}}.  It was last
-modified at {{{modification-time(%Y-%m-%dT%T%z)}}} (commit ??).  This
-copy was exported on {{{time(%Y-%m-%dT%T%z)}}}.
+modified at {{{modification-time(%Y-%m-%dT%T%z)}}} (commit
+call_get_current_commit()).  This copy was exported on
+{{{time(%Y-%m-%dT%T%z)}}}.
 
 The Stack Exchange API allows for read-only access (and write-access
 for comments!) to the Stack Exchange network, and uses JSON as its
@@ -181,7 +183,18 @@ constructor syntax?
     parameters
     later)
 #+end_src
-
+*** TODO Redefine the defstruct macro
+It'd be useful to actually /use/ the =:type= keyword argument I
+provided for verification.
+**** Possible Implementations
+***** Using =lambda= Predicates
+#+BEGIN_SRC emacs-lisp :tangle no
+  (defun defstruct (structure-name &rest slots)
+    (if (listp structure-name)
+        ...)
+    (defun creation-thingy ...)
+    ...)
+#+END_SRC
 *** DONE Site
 :PROPERTIES:
 :ID:       C900BC70-BFD2-4553-B56E-4003CDB2655C
