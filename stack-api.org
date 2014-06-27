@@ -27,7 +27,7 @@ main method of communication.
 * Implementation
 :PROPERTIES:
 :ID:       64762972-C0A4-4FD9-BF3D-1265B6153017
-:tangle:   ./elisp/stack-api.el
+:tangle:   ./emacs-lisp/stack-api.el
 :noweb:    tangle
 :comments: both
 :mkdirp:   yes
